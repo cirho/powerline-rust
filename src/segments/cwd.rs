@@ -26,7 +26,8 @@ pub fn add_segment(prompt : &mut Powerline, special: &str) {
     let path: Vec<&str> = cwd_slice.split("/").skip(1).collect();
     let size = path.len();
     for idx in 0..size {
-        let el = &path[idx];
+        let mut el = &path[idx];
+        if el == &"" { el = &"/" }
         if idx != size - 1 {
             prompt.add_segment(Segment::special(&format!(" {} ", el), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
         }
