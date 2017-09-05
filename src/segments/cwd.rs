@@ -7,7 +7,7 @@ fn pb_to_str(path: path::PathBuf) -> String {
     path.to_str().unwrap().to_string()
 }
 
-pub fn add_segment(prompt : &mut Powerline) {
+pub fn add_segment(prompt : &mut Powerline, special: &str) {
     let cwd = pb_to_str(env::current_dir().unwrap());
     let mut cwd_slice = cwd.get(0..).unwrap();
     match env::home_dir() {
@@ -16,7 +16,7 @@ pub fn add_segment(prompt : &mut Powerline) {
             match cwd.find(&home) {
                     Some(pos) => {
                     cwd_slice = cwd.get((pos + home.len() )..).unwrap();
-                    prompt.add_segment(Segment::simple(" λ ", Color::HOME_FG, Color::HOME_BG) )
+                    prompt.add_segment(Segment::simple(&format!(" {} ", special), Color::HOME_FG, Color::HOME_BG) )
                     },
                 None => {},
             }
