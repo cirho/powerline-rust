@@ -86,29 +86,18 @@ pub fn add_segment(powerline: &mut Powerline) {
     }
     powerline.add_segment(Segment::simple(&format!(" {} ",branch), fg, bg));
     //Maybe some funny macro would be better
-    if git.ahead > 0{
-        let text = format!("{} \u{2B06} ", quantity(git.ahead));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG));
+    macro_rules! add_elem {
+    	($count: expr, $fmtstr: expr, $fg:expr, $bg: expr) => {
+    		if $count > 0 {
+    			let text = format!($fmtstr, quantity($count));
+    			powerline.add_segment(Segment::simple(&text, $fg, $bg));
+    		}
+    	}
     }
-    if git.behind > 0{
-        let text = format!(" {}\u{2B07} ", quantity(git.behind));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_BEHIND_FG, Color::GIT_BEHIND_BG));
-    }
-    if git.staged > 0{
-        let text = format!(" {}\u{2714} ", quantity(git.staged));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_STAGED_FG, Color::GIT_STAGED_BG));
-    }
-    if git.non_staged > 0{
-        let text = format!(" {}\u{270E} ", quantity(git.non_staged));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG));
-    }
-    if git.untracked > 0{
-        let text = format!(" {}\u{2753} ", quantity(git.untracked));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG));
-    }
-    if git.conflicted > 0{
-        let text = format!(" {}\u{273C} ", quantity(git.conflicted));
-        powerline.add_segment(Segment::simple(&text, Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG));
-    }
-
+    add_elem!(git.ahead, "{} \u{2B06} ", Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG);
+    add_elem!(git.behind, "{} \u{2B07} ", Color::GIT_BEHIND_FG, Color::GIT_BEHIND_BG);
+    add_elem!(git.staged, "{} \u{2714} ", Color::GIT_STAGED_FG, Color::GIT_STAGED_BG);
+    add_elem!(git.non_staged, " {}\u{270E} ", Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG);
+    add_elem!(git.untracked, " {}\u{2753} ", Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
+    add_elem!(git.conflicted, " {}\u{273C} ", Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
 }
