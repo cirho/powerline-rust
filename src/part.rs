@@ -25,5 +25,5 @@ impl<T: std::error::Error + 'static> std::convert::From<T> for Error {
 }
 
 pub trait Part {
-    fn segments(self) -> Result<Vec<Segment>, Error>;
+    fn get_segments(self) -> Result<Vec<Segment>, Error>;
 }

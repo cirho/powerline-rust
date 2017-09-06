@@ -13,7 +13,7 @@ impl Cmd {
 }
 
 impl Part for Cmd {
-    fn segments(self) -> Result<Vec<Segment>, Error> {
+    fn get_segments(self) -> Result<Vec<Segment>, Error> {
         let status = env::args().nth(1).ok_or(Error::from_str("You should pass $? as argument"))?;
         let (fg, bg) = if status != "0" {
             (Color::CMD_FAILED_FG, Color::CMD_FAILED_BG)
