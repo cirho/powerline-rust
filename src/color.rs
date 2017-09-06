@@ -4,18 +4,11 @@
 
 #[derive(Copy)]
 pub enum Color {
-    USERNAME_FG,
-    USERNAME_BG,
-    HOSTNAME_FG,
-    HOSTNAME_BG,
     HOME_BG,
     HOME_FG,
     PATH_BG,
     PATH_FG,
-    CWD_FG,
     SEPARATOR_FG,
-    READONLY_BG,
-    READONLY_FG,
     CMD_PASSED_BG,
     CMD_PASSED_FG,
     CMD_FAILED_BG,
@@ -71,7 +64,6 @@ impl Color {
             &Color::REPO_CLEAN_FG => 0,
             &Color::REPO_CLEAN_BG => 148,
             &Color::Custom(col) => col,
-            _ => panic!("Non matching value to color"),
         }
     }
 
