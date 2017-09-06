@@ -9,8 +9,8 @@ use segments::*;
 
 fn main() {
     let mut prompt = powerline::Powerline::new();
-    prompt.add_seg(cwd::Cwd::new("λ")).expect("Failed seg: Cwd");
-    prompt.add_seg(git::GitInfo::new()).expect("Failed seg: Git");
-    prompt.add_seg(cmd::Cmd::new("\\$")).expect("Failed seg: Cmd");
+    prompt.add_part(cwd::Cwd::new("λ")).expect("Failed seg: Cwd");
+    prompt.add_part(git::GitInfo::new()).expect("Failed seg: Git");
+    prompt.add_part(cmd::Cmd::new("\\$")).expect("Failed seg: Cmd");
     println!("{}", prompt);
 }

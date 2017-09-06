@@ -65,7 +65,7 @@ fn  quantity(val: u32) -> String{
 }
 
 impl Part for GitInfo {
-    fn segments(mut self) -> Result<Vec<Segment>, Error> {
+    fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
         let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
         let data = str::from_utf8(&output.stdout)?;
         if data == "" { return Ok(Vec::new()); }
@@ -93,13 +93,13 @@ impl Part for GitInfo {
         } else {
             (Color::REPO_CLEAN_FG, Color::REPO_CLEAN_BG)
         };
-        let mut results = Vec::new();
-        results.push(Segment::simple(&format!(" {} ", branch), branch_fg, branch_bg));
+        let mut segments = Vec::new();
+        segments.push(Segment::simple(&format!(" {} ", branch), branch_fg, branch_bg));
         {
             let mut add_elem = |count, symbol, fg, bg| {
                 if count > 0 {
                     let text = format!(" {}{} ", quantity(count), symbol);
-                    results.push(Segment::simple(&text, fg, bg));
+                    segments.push(Segment::simple(&text, fg, bg));
                 }
             };
             add_elem(self.ahead, '\u{2B06}', Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG);
@@ -109,6 +109,6 @@ impl Part for GitInfo {
             add_elem(self.untracked, '\u{2753}', Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
             add_elem(self.conflicted, '\u{273C}', Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
         }
-        Ok(results)
+        Ok(segments)
     }
 }

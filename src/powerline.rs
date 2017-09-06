@@ -23,8 +23,8 @@ pub struct Powerline { segments : Vec<Segment> }
 
 impl Powerline {
     pub fn new() -> Powerline { Powerline { segments: Vec::new() } }
-    pub fn add_seg<T: Part>(&mut self, seg: T) -> Result<(), Error> {
-        for segment in seg.segments()? {
+    pub fn add_part<T: Part>(&mut self, part: T) -> Result<(), Error> {
+        for segment in part.get_segments()? {
             self.segments.push(segment);
         }
         Ok(())
