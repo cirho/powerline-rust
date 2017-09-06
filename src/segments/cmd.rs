@@ -1,8 +1,19 @@
 use std::env;
 use ::color::Color;
 use ::powerline::*;
+use ::part::*;
 
-pub fn add_segment(prompt : &mut Powerline, special: &str) {
+pub struct Cmd {
+    special: &'static str,
+}
+impl Cmd {
+    pub fn new(special: &'static str) -> Cmd {
+        Cmd { special }
+    }
+}
+
+impl Part for Cmd {
+fn segments(self) -> Result<Vec<Segment>, Error> {
     let status = match  env::args().nth(1){
         Some(s) => s,
         None => panic!("You should pass $? as argument")
@@ -14,6 +25,7 @@ pub fn add_segment(prompt : &mut Powerline, special: &str) {
         fg = Color::CMD_FAILED_FG;
     }
 
-    prompt.add_segment(Segment::simple(&format!(" {} ", special), fg, bg))
+    Ok(vec![Segment::simple(&format!(" {} ", self.special), fg, bg)])
 
+}
 }

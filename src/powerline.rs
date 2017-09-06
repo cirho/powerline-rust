@@ -1,5 +1,6 @@
 use color::Color;
 use std::fmt;
+use part::*;
 
 pub struct Segment {
     pub val: String,
@@ -22,9 +23,12 @@ pub struct Powerline { segments : Vec<Segment> }
 
 impl Powerline {
     pub fn new() -> Powerline { Powerline { segments: Vec::new() } }
-    pub fn add_segment(&mut self, seg: Segment) { self.segments.push(seg) }
-    pub fn last_segment_mut(&mut self) -> Option<&mut Segment> { self.segments.last_mut() }
-    pub fn last_segment(&self) -> Option<&Segment> { self.segments.last() }
+    pub fn add_seg<T: Part>(&mut self, seg: T) -> Result<(), Error> {
+        for segment in seg.segments()? {
+            self.segments.push(segment);
+        }
+        Ok(())
+    }
 }
 
 
