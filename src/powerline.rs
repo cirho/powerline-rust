@@ -31,16 +31,16 @@ impl Powerline {
     }
 }
 
-
 impl fmt::Display for Powerline {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let size = self.segments.len();
         for idx in  0..(size) {
             let seg = &self.segments[idx];
-            let mut next_col = Color::reset();
-            if idx != size - 1 {
-                next_col = self.segments[idx + 1].bg.bg_str();
-            }
+            let next_col = if idx != size - 1 {
+                self.segments[idx+1].bg.bg_str()
+            } else {
+                Color::reset()
+            };
             write!(f, "{}{}{}{}{}{}",seg.fg.fg_str(), seg.bg.bg_str(), seg.val, next_col, seg.sep_col.fg_str(), seg.sep)?;
         }
         write!(f, "{} ", Color::reset())?;

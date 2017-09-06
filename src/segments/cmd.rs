@@ -13,16 +13,13 @@ impl Cmd {
 }
 
 impl Part for Cmd {
-fn segments(self) -> Result<Vec<Segment>, Error> {
-    let status = env::args().nth(1).ok_or(Error::from_str("You should pass $? as argument"))?;
-    let mut bg = Color::CMD_PASSED_BG;
-    let mut fg = Color::CMD_PASSED_FG;
-    if status != "0" {
-        bg = Color::CMD_FAILED_BG;
-        fg = Color::CMD_FAILED_FG;
+    fn segments(self) -> Result<Vec<Segment>, Error> {
+        let status = env::args().nth(1).ok_or(Error::from_str("You should pass $? as argument"))?;
+        let (fg, bg) = if status != "0" {
+            (Color::CMD_FAILED_FG, Color::CMD_FAILED_BG)
+        } else {
+            (Color::CMD_PASSED_FG, Color::CMD_PASSED_BG)
+        };
+        Ok(vec![Segment::simple(&format!(" {} ", self.special), fg, bg)])
     }
-
-    Ok(vec![Segment::simple(&format!(" {} ", self.special), fg, bg)])
-
-}
 }

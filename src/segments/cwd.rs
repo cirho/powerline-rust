@@ -18,26 +18,29 @@ fn pb_to_str(path: path::PathBuf) -> Result<String, Error> {
 }
 
 impl Part for Cwd {
-fn segments(self) -> Result<Vec<Segment>, Error> {
-    let cwd = pb_to_str(env::current_dir()?)?;
-    let mut cwd_slice = &cwd[0..];
-    let mut results = Vec::new();
-    if let Some(home_path) = env::home_dir() {
-        let home = pb_to_str(home_path)?;
-        if let Some(pos) = cwd.find(&home) {
-            cwd_slice = &cwd[pos+home.len()..];
-            results.push(Segment::simple(&format!(" {} ", self.special), Color::HOME_FG, Color::HOME_BG) )
-        }
-    }
+    fn segments(self) -> Result<Vec<Segment>, Error> {
+        let cwd = pb_to_str(env::current_dir()?)?;
+        let mut results = Vec::new();
+        let cwd_slice = if let Some(home_path) = env::home_dir() {
+            let home = pb_to_str(home_path)?;
+            if let Some(pos) = cwd.find(&home) {
+                results.push(Segment::simple(&format!(" {} ", self.special), Color::HOME_FG, Color::HOME_BG) );
+                &cwd[pos+home.len()..]
+            } else {
+                cwd.as_str()
+            }
+        } else {
+            cwd.as_str()
+        };
 
-    for val in cwd_slice.split("/").skip(1) {
-        results.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
+        for val in cwd_slice.split("/").skip(1) {
+            results.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
+        }
+        if let Some(last) = results.last_mut() {
+            if last.val == "  " { last.val = " / ".to_owned()}
+            last.sep = '\u{E0B0}';
+            last.sep_col = last.bg;
+        }
+        Ok(results)
     }
-    if let Some(last) = results.last_mut() {
-        if last.val == "  " { last.val = " / ".to_owned()}
-        last.sep = '\u{E0B0}';
-        last.sep_col = last.bg;
-    }
-    Ok(results)
-}
 }
