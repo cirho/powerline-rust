@@ -1,5 +1,3 @@
-#![feature(iterator_for_each)]
-
 extern crate regex;
 
 mod powerline;

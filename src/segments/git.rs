@@ -23,7 +23,7 @@ impl GitInfo{
         (self.untracked + self.conflicted + self.staged + self.non_staged) > 0
     }
 
-    fn add_file(&mut self, begin: &str) {
+    fn add_file(&mut self, begin: &str) -> Result<(), Error> {
         match begin{
             "??" => self.untracked += 1,
             "DD" => self.conflicted += 1,
@@ -35,23 +35,24 @@ impl GitInfo{
             "AA" => self.conflicted += 1,
             _ => {
                 let mut chars = begin.chars();
-                let a = chars.next().unwrap();
-                let b = chars.next().unwrap();
+                let a = chars.next().ok_or(Error::from_str("Invalid file status"))?;
+                let b = chars.next().ok_or(Error::from_str("Invalid file status"))?;
                 if b != ' '{ self.non_staged += 1; }
                 if a != ' '{ self.staged += 1; }
             },
-        }
+        };
+        Ok(())
     }
 
 }
 
-fn get_detached_branch_name() -> String {
-    let child = Command::new("git").args(&["describe", "--tags", "--always"]).output().expect("Failed to run git");
+fn get_detached_branch_name() -> Result<String, Error> {
+    let child = Command::new("git").args(&["describe", "--tags", "--always"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
     if child.status.success() {
-         return String::from("Big Bang")
+         return Ok(String::from("Big Bang"))
     }
-    let branch = str::from_utf8(&child.stdout).unwrap().split("\n").next().unwrap();
-    format!("\u{2693}{}",branch)
+    let branch = str::from_utf8(&child.stdout)?.split("\n").next().ok_or(Error::from_str("Empty git output"))?;
+    Ok(format!("\u{2693}{}",branch))
 }
 
 fn  quantity(val: u32) -> String{
@@ -61,25 +62,29 @@ fn  quantity(val: u32) -> String{
 
 impl Part for GitInfo {
 fn segments(self) -> Result<Vec<Segment>, Error> {
-    let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().expect("Failed to run git");
-    let data = str::from_utf8(&output.stdout).unwrap();
+    let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
+    let data = str::from_utf8(&output.stdout)?;
     if data == "" { return Ok(Vec::new());}
     let mut git = GitInfo::new();
     let mut lines:Vec<&str> = data.split("\n").collect();
     lines.pop();
 
     let mut iter = lines.into_iter();
-    let branch_line = iter.next().unwrap();
-    let re = Regex::new(r"^## (?P<local>[^\.]+)?").unwrap();
+    let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
+    let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
 
-    let branch: String;
-    if let Some(caps) = re.captures(branch_line) {
-        branch = caps["local"].to_owned();
+    let branch: String = {
+        if let Some(caps) = re.captures(branch_line) {
+            caps["local"].to_owned()
+        }
+        else {
+            get_detached_branch_name()?
+        }
+    };
+    for x in iter {
+        let file = x.get(..2).ok_or(Error::from_str("Invalid file status line"))?;
+        git.add_file(file)?;
     }
-    else {
-        branch = get_detached_branch_name();
-    }
-    iter.map(|x| x.get(..2).unwrap()).for_each(|x| git.add_file(x));
 
     let mut bg = Color::REPO_CLEAN_BG;
     let mut fg = Color::REPO_CLEAN_FG;
