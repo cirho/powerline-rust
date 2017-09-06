@@ -2,11 +2,11 @@ use color::Color;
 use std::fmt;
 
 pub struct Segment {
-    val: String,
-    fg: Color,
-    bg: Color,
-    sep: char,
-    sep_col: Color,
+    pub val: String,
+    pub fg: Color,
+    pub bg: Color,
+    pub sep: char,
+    pub sep_col: Color,
 }
 
 impl Segment {
@@ -23,6 +23,8 @@ pub struct Powerline { segments : Vec<Segment> }
 impl Powerline {
     pub fn new() -> Powerline { Powerline { segments: Vec::new() } }
     pub fn add_segment(&mut self, seg: Segment) { self.segments.push(seg) }
+    pub fn last_segment_mut(&mut self) -> Option<&mut Segment> { self.segments.last_mut() }
+    pub fn last_segment(&self) -> Option<&Segment> { self.segments.last() }
 }
 
 
