@@ -1,10 +1,11 @@
 use ::color::Color;
 use ::powerline::*;
+use ::part::*;
 use std::process::Command;
 use std::str;
 use regex::Regex;
 
-struct GitInfo {
+pub struct GitInfo {
     untracked: u32,
     conflicted: u32,
     non_staged: u32,
@@ -14,7 +15,7 @@ struct GitInfo {
 }
 
 impl GitInfo{
-    fn new() -> GitInfo{
+    pub fn new() -> GitInfo{
         GitInfo{ untracked: 0, conflicted: 0, non_staged: 0, staged: 0, ahead: 0, behind: 0}
     }
 
@@ -57,10 +58,12 @@ fn  quantity(val: u32) -> String{
     if val  > 1 { return format!("{}",val); }
     String::from("")
 }
-pub fn add_segment(powerline: &mut Powerline) {
+
+impl Part for GitInfo {
+fn segments(self) -> Result<Vec<Segment>, Error> {
     let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().expect("Failed to run git");
     let data = str::from_utf8(&output.stdout).unwrap();
-    if data == "" { return;}
+    if data == "" { return Ok(Vec::new());}
     let mut git = GitInfo::new();
     let mut lines:Vec<&str> = data.split("\n").collect();
     lines.pop();
@@ -84,13 +87,14 @@ pub fn add_segment(powerline: &mut Powerline) {
         bg = Color::REPO_DIRTY_BG;
         fg = Color::REPO_DIRTY_FG
     }
-    powerline.add_segment(Segment::simple(&format!(" {} ",branch), fg, bg));
+    let mut results = Vec::new();
+    results.push(Segment::simple(&format!(" {} ",branch), fg, bg));
     //Maybe some funny macro would be better
     macro_rules! add_elem {
     	($count: expr, $fmtstr: expr, $fg:expr, $bg: expr) => {
     		if $count > 0 {
     			let text = format!($fmtstr, quantity($count));
-    			powerline.add_segment(Segment::simple(&text, $fg, $bg));
+                       results.push(Segment::simple(&text, $fg, $bg));
     		}
     	}
     }
@@ -100,4 +104,6 @@ pub fn add_segment(powerline: &mut Powerline) {
     add_elem!(git.non_staged, " {}\u{270E} ", Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG);
     add_elem!(git.untracked, " {}\u{2753} ", Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
     add_elem!(git.conflicted, " {}\u{273C} ", Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
+    Ok(results)
+}
 }
