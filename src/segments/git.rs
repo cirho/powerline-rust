@@ -1,14 +1,15 @@
 use ::color::Color;
 use ::powerline::*;
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::str;
+use regex::Regex;
 
 struct GitInfo {
     untracked: u32,
     conflicted: u32,
     non_staged: u32,
-    ahead: u32,
-    behind: u32,
+    pub ahead: u32,
+    pub behind: u32,
     staged: u32,
 }
 
@@ -49,7 +50,7 @@ fn get_detached_branch_name() -> String {
          return String::from("Big Bang")
     }
     let branch = str::from_utf8(&child.stdout).unwrap().split("\n").next().unwrap();
-    format!("\u{2693}{} ",branch)
+    format!("\u{2693}{}",branch)
 }
 
 fn  quantity(val: u32) -> String{
@@ -57,7 +58,7 @@ fn  quantity(val: u32) -> String{
     String::from("")
 }
 pub fn add_segment(powerline: &mut Powerline) {
-    let output = Command::new("git").arg("status").arg("--porcelain").arg("-b").output().expect("Failed to run git");
+    let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().expect("Failed to run git");
     let data = str::from_utf8(&output.stdout).unwrap();
     if data == "" { return;}
     let mut git = GitInfo::new();
@@ -66,7 +67,15 @@ pub fn add_segment(powerline: &mut Powerline) {
 
     let mut iter = lines.into_iter();
     let branch_line = iter.next().unwrap();
+    let re = Regex::new(r"^## (?P<local>[^\.]+)?").unwrap();
 
+    let branch: String;
+    if let Some(caps) = re.captures(branch_line) {
+        branch = caps["local"].to_owned();
+    }
+    else {
+        branch = get_detached_branch_name();
+    }
     iter.map(|x| x.get(..2).unwrap()).for_each(|x| git.add_file(x));
 
     let mut bg = Color::REPO_CLEAN_BG;
@@ -75,7 +84,8 @@ pub fn add_segment(powerline: &mut Powerline) {
         bg = Color::REPO_DIRTY_BG;
         fg = Color::REPO_DIRTY_FG
     }
-    powerline.add_segment(Segment::simple(branch_line.get(2..).unwrap(), fg, bg));
+    powerline.add_segment(Segment::simple(&format!(" {} ",branch), fg, bg));
+    //Maybe some funny macro would be better
     if git.ahead > 0{
         let text = format!("{} \u{2B06} ", quantity(git.ahead));
         powerline.add_segment(Segment::simple(&text, Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG));
