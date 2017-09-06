@@ -48,67 +48,67 @@ impl GitInfo{
 
 fn get_detached_branch_name() -> Result<String, Error> {
     let child = Command::new("git").args(&["describe", "--tags", "--always"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
-    if child.status.success() {
-         return Ok(String::from("Big Bang"))
-    }
-    let branch = str::from_utf8(&child.stdout)?.split("\n").next().ok_or(Error::from_str("Empty git output"))?;
-    Ok(format!("\u{2693}{}",branch))
+    Ok(if child.status.success() {
+        String::from("Big Bang")
+    } else {
+        let branch = str::from_utf8(&child.stdout)?.split("\n").next().ok_or(Error::from_str("Empty git output"))?;
+        format!("\u{2693}{}", branch)
+    })
 }
 
 fn  quantity(val: u32) -> String{
-    if val  > 1 { return format!("{}",val); }
-    String::from("")
+    if val  > 1 {
+        format!("{}",val)
+    } else {
+        String::from("")
+    }
 }
 
 impl Part for GitInfo {
-fn segments(self) -> Result<Vec<Segment>, Error> {
-    let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
-    let data = str::from_utf8(&output.stdout)?;
-    if data == "" { return Ok(Vec::new());}
-    let mut git = GitInfo::new();
-    let mut lines:Vec<&str> = data.split("\n").collect();
-    lines.pop();
+    fn segments(mut self) -> Result<Vec<Segment>, Error> {
+        let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
+        let data = str::from_utf8(&output.stdout)?;
+        if data == "" { return Ok(Vec::new()); }
+        let mut lines: Vec<&str> = data.split("\n").collect();
+        lines.pop();
 
-    let mut iter = lines.into_iter();
-    let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
-    let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
+        let mut iter = lines.into_iter();
+        let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
+        let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
 
-    let branch: String = {
-        if let Some(caps) = re.captures(branch_line) {
-            caps["local"].to_owned()
+        let branch = {
+            if let Some(caps) = re.captures(branch_line) {
+                caps["local"].to_owned()
+            } else {
+                get_detached_branch_name()?
+            }
+        };
+        for x in iter {
+            let file = x.get(..2).ok_or(Error::from_str("Invalid file status line"))?;
+            self.add_file(file)?;
         }
-        else {
-            get_detached_branch_name()?
-        }
-    };
-    for x in iter {
-        let file = x.get(..2).ok_or(Error::from_str("Invalid file status line"))?;
-        git.add_file(file)?;
-    }
 
-    let mut bg = Color::REPO_CLEAN_BG;
-    let mut fg = Color::REPO_CLEAN_FG;
-    if git.is_dirty(){
-        bg = Color::REPO_DIRTY_BG;
-        fg = Color::REPO_DIRTY_FG
+        let (branch_fg, branch_bg) = if self.is_dirty() {
+            (Color::REPO_DIRTY_FG, Color::REPO_DIRTY_BG)
+        } else {
+            (Color::REPO_CLEAN_FG, Color::REPO_CLEAN_BG)
+        };
+        let mut results = Vec::new();
+        results.push(Segment::simple(&format!(" {} ", branch), branch_fg, branch_bg));
+        {
+            let mut add_elem = |count, symbol, fg, bg| {
+                if count > 0 {
+                    let text = format!(" {}{} ", quantity(count), symbol);
+                    results.push(Segment::simple(&text, fg, bg));
+                }
+            };
+            add_elem(self.ahead, '\u{2B06}', Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG);
+            add_elem(self.behind, '\u{2B07}', Color::GIT_BEHIND_FG, Color::GIT_BEHIND_BG);
+            add_elem(self.staged, '\u{2714}', Color::GIT_STAGED_FG, Color::GIT_STAGED_BG);
+            add_elem(self.non_staged, '\u{270E}', Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG);
+            add_elem(self.untracked, '\u{2753}', Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
+            add_elem(self.conflicted, '\u{273C}', Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
+        }
+        Ok(results)
     }
-    let mut results = Vec::new();
-    results.push(Segment::simple(&format!(" {} ",branch), fg, bg));
-    //Maybe some funny macro would be better
-    macro_rules! add_elem {
-    	($count: expr, $fmtstr: expr, $fg:expr, $bg: expr) => {
-    		if $count > 0 {
-    			let text = format!($fmtstr, quantity($count));
-                       results.push(Segment::simple(&text, $fg, $bg));
-    		}
-    	}
-    }
-    add_elem!(git.ahead, "{} \u{2B06} ", Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG);
-    add_elem!(git.behind, "{} \u{2B07} ", Color::GIT_BEHIND_FG, Color::GIT_BEHIND_BG);
-    add_elem!(git.staged, "{} \u{2714} ", Color::GIT_STAGED_FG, Color::GIT_STAGED_BG);
-    add_elem!(git.non_staged, " {}\u{270E} ", Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG);
-    add_elem!(git.untracked, " {}\u{2753} ", Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
-    add_elem!(git.conflicted, " {}\u{273C} ", Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
-    Ok(results)
-}
 }
