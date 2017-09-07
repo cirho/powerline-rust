@@ -29,6 +29,10 @@ pub enum Color {
     REPO_CLEAN_FG,
     REPO_DIRTY_BG,
     REPO_DIRTY_FG,
+    USERNAME_FG,
+    USERNAME_BG,
+    HOSTNAME_FG,
+    HOSTNAME_BG,
 
     Custom(i32),
 }
@@ -63,6 +67,10 @@ impl Color {
             &Color::REPO_DIRTY_BG => 161,
             &Color::REPO_CLEAN_FG => 0,
             &Color::REPO_CLEAN_BG => 148,
+            &Color::USERNAME_FG => 250,
+            &Color::USERNAME_BG => 240,
+            &Color::HOSTNAME_FG => 250,
+            &Color::HOSTNAME_BG => 238,
             &Color::Custom(col) => col,
         }
     }
