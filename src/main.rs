@@ -6,11 +6,12 @@ mod part;
 mod color;
 
 use segments::*;
+use part::*;
 
 fn main() {
     let mut prompt = powerline::Powerline::new();
-    prompt.add_part(cwd::Cwd::new("λ")).expect("Failed seg: Cwd");
-    prompt.add_part(git::GitInfo::new()).expect("Failed seg: Git");
-    prompt.add_part(cmd::Cmd::new("\\$")).expect("Failed seg: Cmd");
+    prompt.add_segments(cwd::Cwd::new("λ").get_segments().expect("Failed seg: Cwd"));
+    prompt.add_segments(git::GitInfo::new().get_segments().expect("Failed seg: Git"));
+    prompt.add_segments(cmd::Cmd::new("\\$").get_segments().expect("Failed seg: Cmd"));
     println!("{}", prompt);
 }
