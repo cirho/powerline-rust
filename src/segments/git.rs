@@ -75,7 +75,16 @@ impl Part for GitInfo {
         let mut iter = lines.into_iter();
         let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
         let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
+        let aheadbehind_re = Regex::new(r"\[(ahead (\d+))?(, )?(behind (\d+))?\]")?;
 
+        if let Some(ab_caps) = aheadbehind_re.captures(branch_line) {
+            if let Some(ahead) = ab_caps.get(2) {
+                self.ahead += ahead.as_str().parse()?;
+            }
+            if let Some(behind) = ab_caps.get(5) {
+                self.behind += behind.as_str().parse()?;
+            }
+        }
         let branch = {
             if let Some(caps) = re.captures(branch_line) {
                 caps["local"].to_owned()
