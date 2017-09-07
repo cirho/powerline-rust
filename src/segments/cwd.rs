@@ -38,6 +38,7 @@ impl Part for Cwd {
         }
         if let Some(last) = segments.last_mut() {
             if last.val == "  " { last.val = " / ".to_owned()}
+            last.fg = Color::CWD_FG;
             last.sep = '\u{E0B0}';
             last.sep_col = last.bg;
         }
