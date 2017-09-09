@@ -55,7 +55,6 @@ pub enum Color {
 
     VIRTUAL_ENV_BG,
     VIRTUAL_ENV_FG,
-    Custom(i32),
 }
 impl Clone for Color{
     fn clone(&self) -> Color { *self }

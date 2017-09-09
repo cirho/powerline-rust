@@ -1,20 +1,110 @@
 use color::Color;
 use part::Error;
-use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use cpython::{Python, PyDict, ObjectProtocol, FromPyObject};
 
 pub struct Theme {
-    // TODO: use _something_ faster than HashMap
-    colors: HashMap<Color, i32>,
+    username_fg: u8,
+    username_bg: u8,
+    username_root_bg: u8,
+
+    hostname_fg: u8,
+    hostname_bg: u8,
+
+    home_bg: u8,
+    home_fg: u8,
+    path_bg: u8,
+    path_fg: u8,
+    cwd_fg: u8,
+    separator_fg: u8,
+
+    readonly_bg: u8,
+    readonly_fg: u8,
+
+    ssh_bg: u8,
+    ssh_fg: u8,
+
+    repo_clean_bg: u8,
+    repo_clean_fg: u8,
+    repo_dirty_bg: u8,
+    repo_dirty_fg: u8,
+
+    jobs_fg: u8,
+    jobs_bg: u8,
+
+    cmd_passed_bg: u8,
+    cmd_passed_fg: u8,
+    cmd_failed_bg: u8,
+    cmd_failed_fg: u8,
+
+    svn_changes_bg: u8,
+    svn_changes_fg: u8,
+
+    git_ahead_bg: u8,
+    git_ahead_fg: u8,
+    git_behind_bg: u8,
+    git_behind_fg: u8,
+    git_staged_bg: u8,
+    git_staged_fg: u8,
+    git_notstaged_bg: u8,
+    git_notstaged_fg: u8,
+    git_untracked_bg: u8,
+    git_untracked_fg: u8,
+    git_conflicted_bg: u8,
+    git_conflicted_fg: u8,
+
+    virtual_env_bg: u8,
+    virtual_env_fg: u8,
 }
 
 impl Theme {
 
-    pub fn get(&self, color: Color) -> i32 {
-        self.colors[&color]
+    pub fn get(&self, color: Color) -> u8 {
+        match color {
+            Color::USERNAME_FG => self.username_fg,
+            Color::USERNAME_BG => self.username_bg,
+            Color::USERNAME_ROOT_BG => self.username_root_bg,
+            Color::HOSTNAME_FG => self.hostname_fg,
+            Color::HOSTNAME_BG => self.hostname_bg,
+            Color::HOME_BG => self.home_bg,
+            Color::HOME_FG => self.home_fg,
+            Color::PATH_BG => self.path_bg,
+            Color::PATH_FG => self.path_fg,
+            Color::CWD_FG => self.cwd_fg,
+            Color::SEPARATOR_FG => self.separator_fg,
+            Color::READONLY_BG => self.readonly_bg,
+            Color::READONLY_FG => self.readonly_fg,
+            Color::SSH_BG => self.ssh_bg,
+            Color::SSH_FG => self.ssh_fg,
+            Color::REPO_CLEAN_BG => self.repo_clean_bg,
+            Color::REPO_CLEAN_FG => self.repo_clean_fg,
+            Color::REPO_DIRTY_BG => self.repo_dirty_bg,
+            Color::REPO_DIRTY_FG => self.repo_dirty_fg,
+            Color::JOBS_FG => self.jobs_fg,
+            Color::JOBS_BG => self.jobs_bg,
+            Color::CMD_PASSED_BG => self.cmd_passed_bg,
+            Color::CMD_PASSED_FG => self.cmd_passed_fg,
+            Color::CMD_FAILED_BG => self.cmd_failed_bg,
+            Color::CMD_FAILED_FG => self.cmd_failed_fg,
+            Color::SVN_CHANGES_BG => self.svn_changes_bg,
+            Color::SVN_CHANGES_FG => self.svn_changes_fg,
+            Color::GIT_AHEAD_BG => self.git_ahead_bg,
+            Color::GIT_AHEAD_FG => self.git_ahead_fg,
+            Color::GIT_BEHIND_BG => self.git_behind_bg,
+            Color::GIT_BEHIND_FG => self.git_behind_fg,
+            Color::GIT_STAGED_BG => self.git_staged_bg,
+            Color::GIT_STAGED_FG => self.git_staged_fg,
+            Color::GIT_NOTSTAGED_BG => self.git_notstaged_bg,
+            Color::GIT_NOTSTAGED_FG => self.git_notstaged_fg,
+            Color::GIT_UNTRACKED_BG => self.git_untracked_bg,
+            Color::GIT_UNTRACKED_FG => self.git_untracked_fg,
+            Color::GIT_CONFLICTED_BG => self.git_conflicted_bg,
+            Color::GIT_CONFLICTED_FG => self.git_conflicted_fg,
+            Color::VIRTUAL_ENV_BG => self.virtual_env_bg,
+            Color::VIRTUAL_ENV_FG => self.virtual_env_fg,
+        }
     }
 
     pub fn new_from_python() -> Result<Theme, Error> {
@@ -28,66 +118,53 @@ impl Theme {
         py.run(&code, None, Some(&locals)).unwrap();
 
         let compiled = locals.get_item(py, "Color").unwrap();
-        let mut colors = HashMap::new();
 
-        macro_rules! add_property {
-            ($prop:ident) => {
-                colors.insert(Color::$prop, FromPyObject::extract(py, &compiled.getattr(py, stringify!($prop)).unwrap()).unwrap());
-            }
-        }
-        add_property!(USERNAME_FG);
-        add_property!(USERNAME_BG);
-        add_property!(USERNAME_ROOT_BG);
-
-        add_property!(HOSTNAME_FG);
-        add_property!(HOSTNAME_BG);
-
-        add_property!(HOME_BG);
-        add_property!(HOME_FG);
-        add_property!(PATH_BG);
-        add_property!(PATH_FG);
-        add_property!(CWD_FG);
-        add_property!(SEPARATOR_FG);
-
-        add_property!(READONLY_BG);
-        add_property!(READONLY_FG);
-
-        add_property!(SSH_BG);
-        add_property!(SSH_FG);
-
-        add_property!(REPO_CLEAN_BG);
-        add_property!(REPO_CLEAN_FG);
-        add_property!(REPO_DIRTY_BG);
-        add_property!(REPO_DIRTY_FG);
-
-        add_property!(JOBS_FG);
-        add_property!(JOBS_BG);
-
-        add_property!(CMD_PASSED_BG);
-        add_property!(CMD_PASSED_FG);
-        add_property!(CMD_FAILED_BG);
-        add_property!(CMD_FAILED_FG);
-
-        add_property!(SVN_CHANGES_BG);
-        add_property!(SVN_CHANGES_FG);
-
-        add_property!(GIT_AHEAD_BG);
-        add_property!(GIT_AHEAD_FG);
-        add_property!(GIT_BEHIND_BG);
-        add_property!(GIT_BEHIND_FG);
-        add_property!(GIT_STAGED_BG);
-        add_property!(GIT_STAGED_FG);
-        add_property!(GIT_NOTSTAGED_BG);
-        add_property!(GIT_NOTSTAGED_FG);
-        add_property!(GIT_UNTRACKED_BG);
-        add_property!(GIT_UNTRACKED_FG);
-        add_property!(GIT_CONFLICTED_BG);
-        add_property!(GIT_CONFLICTED_FG);
-
-        add_property!(VIRTUAL_ENV_BG);
-        add_property!(VIRTUAL_ENV_FG);
-
-        Ok(Theme { colors })
+        let get_prop = |prop: &str| -> u8 {
+            FromPyObject::extract(py, &compiled.getattr(py, prop).unwrap()).unwrap()
+        };
+        Ok(Theme {
+            username_fg: get_prop("USERNAME_FG"),
+            username_bg: get_prop("USERNAME_BG"),
+            username_root_bg: get_prop("USERNAME_ROOT_BG"),
+            hostname_fg: get_prop("HOSTNAME_FG"),
+            hostname_bg: get_prop("HOSTNAME_BG"),
+            home_bg: get_prop("HOME_BG"),
+            home_fg: get_prop("HOME_FG"),
+            path_bg: get_prop("PATH_BG"),
+            path_fg: get_prop("PATH_FG"),
+            cwd_fg: get_prop("CWD_FG"),
+            separator_fg: get_prop("SEPARATOR_FG"),
+            readonly_bg: get_prop("READONLY_BG"),
+            readonly_fg: get_prop("READONLY_FG"),
+            ssh_bg: get_prop("SSH_BG"),
+            ssh_fg: get_prop("SSH_FG"),
+            repo_clean_bg: get_prop("REPO_CLEAN_BG"),
+            repo_clean_fg: get_prop("REPO_CLEAN_FG"),
+            repo_dirty_bg: get_prop("REPO_DIRTY_BG"),
+            repo_dirty_fg: get_prop("REPO_DIRTY_FG"),
+            jobs_fg: get_prop("JOBS_FG"),
+            jobs_bg: get_prop("JOBS_BG"),
+            cmd_passed_bg: get_prop("CMD_PASSED_BG"),
+            cmd_passed_fg: get_prop("CMD_PASSED_FG"),
+            cmd_failed_bg: get_prop("CMD_FAILED_BG"),
+            cmd_failed_fg: get_prop("CMD_FAILED_FG"),
+            svn_changes_bg: get_prop("SVN_CHANGES_BG"),
+            svn_changes_fg: get_prop("SVN_CHANGES_FG"),
+            git_ahead_bg: get_prop("GIT_AHEAD_BG"),
+            git_ahead_fg: get_prop("GIT_AHEAD_FG"),
+            git_behind_bg: get_prop("GIT_BEHIND_BG"),
+            git_behind_fg: get_prop("GIT_BEHIND_FG"),
+            git_staged_bg: get_prop("GIT_STAGED_BG"),
+            git_staged_fg: get_prop("GIT_STAGED_FG"),
+            git_notstaged_bg: get_prop("GIT_NOTSTAGED_BG"),
+            git_notstaged_fg: get_prop("GIT_NOTSTAGED_FG"),
+            git_untracked_bg: get_prop("GIT_UNTRACKED_BG"),
+            git_untracked_fg: get_prop("GIT_UNTRACKED_FG"),
+            git_conflicted_bg: get_prop("GIT_CONFLICTED_BG"),
+            git_conflicted_fg: get_prop("GIT_CONFLICTED_FG"),
+            virtual_env_bg: get_prop("VIRTUAL_ENV_BG"),
+            virtual_env_fg: get_prop("VIRTUAL_ENV_FG"),
+        })
     }
 
 
