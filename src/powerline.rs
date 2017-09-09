@@ -1,4 +1,5 @@
 use color::Color;
+use themes::Theme;
 use std::fmt;
 
 pub struct Segment {
@@ -18,15 +19,19 @@ impl Segment {
     }
 }
 
-pub struct Powerline { segments : Vec<Segment> }
+pub struct Powerline { segments : Vec<Segment>, theme: Theme }
 
 impl Powerline {
-    pub fn new() -> Powerline { Powerline { segments: Vec::new() } }
+    pub fn new(theme: Theme) -> Powerline { Powerline { segments: Vec::new(), theme } }
     pub fn add_segments(&mut self, new_segments: Vec<Segment>) {
         for segment in new_segments {
             self.segments.push(segment);
         }
     }
+
+    fn fg_str(&self, color: Color) -> String { format!("\\[\\e[38;5;{}m\\]", self.theme.get(color)) }
+    fn bg_str(&self, color: Color) -> String { format!("\\[\\e[48;5;{}m\\]", self.theme.get(color)) }
+    fn reset(&self) -> String { String::from("\\[\\e[0m\\]") }
 }
 
 impl fmt::Display for Powerline {
@@ -35,13 +40,13 @@ impl fmt::Display for Powerline {
         for idx in  0..(size) {
             let seg = &self.segments[idx];
             let next_col = if idx != size - 1 {
-                self.segments[idx+1].bg.bg_str()
+                self.bg_str(self.segments[idx+1].bg)
             } else {
-                Color::reset()
+                self.reset()
             };
-            write!(f, "{}{}{}{}{}{}",seg.fg.fg_str(), seg.bg.bg_str(), seg.val, next_col, seg.sep_col.fg_str(), seg.sep)?;
+            write!(f, "{}{}{}{}{}{}", self.fg_str(seg.fg), self.bg_str(seg.bg), seg.val, next_col, self.fg_str(seg.sep_col), seg.sep)?;
         }
-        write!(f, "{} ", Color::reset())?;
+        write!(f, "{} ", self.reset())?;
         Ok(())
     }
 }

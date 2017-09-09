@@ -5,3 +5,4 @@ authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 
 [dependencies]
 regex = "*"
+cpython = "0.1"
