@@ -4,7 +4,10 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 use cpython::{Python, PyDict, ObjectProtocol, FromPyObject};
+use std::{self, io, fs};
+use bincode;
 
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Theme {
     username_fg: u8,
     username_bg: u8,
@@ -107,11 +110,60 @@ impl Theme {
         }
     }
 
-    pub fn new_from_python() -> Result<Theme, Error> {
+    pub fn new() -> Result<Theme, Error> {
+        if Theme::is_cache_old()? {
+            fs::remove_file(Theme::cache_filename())?;
+        }
+
+        Ok(if let Some(theme) = Theme::new_from_cache()? {
+            theme
+        } else if let Some(theme) = Theme::new_from_python()? {
+            let mut cache_file = fs::OpenOptions::new().create(true).write(true).truncate(true).open(&Theme::cache_filename())?;
+            bincode::serialize_into(&mut cache_file, &theme, bincode::Infinite)?;
+
+            theme
+        } else {
+            DEFAULT_THEME.clone()
+        })
+    }
+
+    fn is_cache_old() -> Result<bool, Error> {
+        match fs::metadata(&Theme::cache_filename()) {
+            Ok(cache_meta) => match fs::metadata(&Theme::theme_filename()) {
+                Ok(theme_meta) => Ok(cache_meta.modified()? <= theme_meta.modified()?),
+                Err(ref e) if e.kind() == io::ErrorKind::NotFound => Ok(true),
+                Err(e) => Err(std::convert::From::from(e)),
+            },
+            Err(ref e) if e.kind() == io::ErrorKind::NotFound => Ok(false),
+            Err(e) => Err(std::convert::From::from(e)),
+        }
+    }
+
+    fn new_from_cache() -> Result<Option<Theme>, Error> {
+        match File::open(&Theme::cache_filename()) {
+            Ok(mut file) => Ok(Some(bincode::deserialize_from(&mut file, bincode::Infinite)?)),
+            Err(ref e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(std::convert::From::from(e)),
+        }
+    }
+
+    fn new_from_python() -> Result<Option<Theme>, Error> {
         let gil = Python::acquire_gil();
         let py = gil.python();
 
-        let theme_file = read_file(&Theme::filename())?;
+        let theme_file = match File::open(&Theme::theme_filename()) {
+            Ok(mut file) => {
+                let mut s = String::new();
+                file.read_to_string(&mut s)?;
+                s
+            },
+            Err(ref e) if e.kind() == io::ErrorKind::NotFound => {
+                return Ok(None)
+            },
+            Err(e) => {
+                return Err(std::convert::From::from(e))
+            },
+        };
         let code = format!("{}{}", DEFAULT_COLOR_CLASS_PYTHON_CODE, theme_file);
 
         let locals = PyDict::new(py);
@@ -122,7 +174,7 @@ impl Theme {
         let get_prop = |prop: &str| -> u8 {
             FromPyObject::extract(py, &compiled.getattr(py, prop).unwrap()).unwrap()
         };
-        Ok(Theme {
+        Ok(Some(Theme {
             username_fg: get_prop("USERNAME_FG"),
             username_bg: get_prop("USERNAME_BG"),
             username_root_bg: get_prop("USERNAME_ROOT_BG"),
@@ -164,22 +216,18 @@ impl Theme {
             git_conflicted_fg: get_prop("GIT_CONFLICTED_FG"),
             virtual_env_bg: get_prop("VIRTUAL_ENV_BG"),
             virtual_env_fg: get_prop("VIRTUAL_ENV_FG"),
-        })
+        }))
     }
 
 
 
-    fn filename() -> String {
+    fn theme_filename() -> String {
         format!("{}/{}", env::home_dir().unwrap().to_str().unwrap(), "/.config/powerline-rust/theme.py")
     }
+    fn cache_filename() -> String {
+        format!("{}/{}", env::home_dir().unwrap().to_str().unwrap(), "/.config/powerline-rust/.theme_cache")
+    }
 
-}
-
-fn read_file(path: &str) -> Result<String, Error> {
-    let mut file = File::open(path)?;
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-    Ok(s)
 }
 
 // https://github.com/banga/powerline-shell/blob/master/themes/default.py
@@ -249,3 +297,57 @@ class DefaultColor:
     VIRTUAL_ENV_FG = 00
 
 "#;
+
+static DEFAULT_THEME: Theme = Theme {
+    username_fg: 250,
+    username_bg: 240,
+    username_root_bg: 124,
+
+    hostname_fg: 250,
+    hostname_bg: 238,
+
+    home_bg: 31,
+    home_fg: 15,
+    path_bg: 237,
+    path_fg: 250,
+    cwd_fg: 254,
+    separator_fg: 244,
+
+    readonly_bg: 124,
+    readonly_fg: 254,
+
+    ssh_bg: 166,
+    ssh_fg: 254,
+
+    repo_clean_bg: 148,
+    repo_clean_fg: 0,
+    repo_dirty_bg: 161,
+    repo_dirty_fg: 15,
+
+    jobs_fg: 39,
+    jobs_bg: 238,
+
+    cmd_passed_bg: 236,
+    cmd_passed_fg: 15,
+    cmd_failed_bg: 161,
+    cmd_failed_fg: 15,
+
+    svn_changes_bg: 148,
+    svn_changes_fg: 22,
+
+    git_ahead_bg: 240,
+    git_ahead_fg: 250,
+    git_behind_bg: 240,
+    git_behind_fg: 250,
+    git_staged_bg: 22,
+    git_staged_fg: 15,
+    git_notstaged_bg: 130,
+    git_notstaged_fg: 15,
+    git_untracked_bg: 52,
+    git_untracked_fg: 15,
+    git_conflicted_bg: 9,
+    git_conflicted_fg: 15,
+
+    virtual_env_bg: 35,
+    virtual_env_fg: 00,
+};
