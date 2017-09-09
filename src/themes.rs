@@ -3,7 +3,7 @@ use part::Error;
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use cpython::{Python, PyDict, ObjectProtocol, FromPyObject};
+use cpython::{Python, PyObject, PyDict, ObjectProtocol, FromPyObject};
 use std::{self, io, fs};
 use bincode;
 
@@ -118,13 +118,17 @@ impl Theme {
         Ok(if let Some(theme) = Theme::new_from_cache()? {
             theme
         } else if let Some(theme) = Theme::new_from_python()? {
-            let mut cache_file = fs::OpenOptions::new().create(true).write(true).truncate(true).open(&Theme::cache_filename())?;
-            bincode::serialize_into(&mut cache_file, &theme, bincode::Infinite)?;
-
+            theme.update_cache()?;
             theme
         } else {
             DEFAULT_THEME.clone()
         })
+    }
+
+    fn update_cache(&self) -> Result<(), Error> {
+        let mut file = fs::OpenOptions::new().create(true).write(true).truncate(true).open(&Theme::cache_filename())?;
+        bincode::serialize_into(&mut file, &self, bincode::Infinite)?;
+        Ok(())
     }
 
     fn is_cache_old() -> Result<bool, Error> {
@@ -148,9 +152,6 @@ impl Theme {
     }
 
     fn new_from_python() -> Result<Option<Theme>, Error> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-
         let theme_file = match File::open(&Theme::theme_filename()) {
             Ok(mut file) => {
                 let mut s = String::new();
@@ -164,13 +165,10 @@ impl Theme {
                 return Err(std::convert::From::from(e))
             },
         };
-        let code = format!("{}{}", DEFAULT_COLOR_CLASS_PYTHON_CODE, theme_file);
 
-        let locals = PyDict::new(py);
-        py.run(&code, None, Some(&locals)).unwrap();
-
-        let compiled = locals.get_item(py, "Color").unwrap();
-
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let compiled = Theme::python_compile(py, &theme_file)?;
         let get_prop = |prop: &str| -> u8 {
             FromPyObject::extract(py, &compiled.getattr(py, prop).unwrap()).unwrap()
         };
@@ -219,6 +217,13 @@ impl Theme {
         }))
     }
 
+    fn python_compile(py: Python, theme_file: &str) -> Result<PyObject, Error> {
+        let code = format!("{}{}", DEFAULT_COLOR_CLASS_PYTHON_CODE, theme_file);
+        let locals = PyDict::new(py);
+        py.run(&code, None, Some(&locals)).unwrap();
+        let compiled = locals.get_item(py, "Color").unwrap();
+        Ok(compiled)
+    }
 
 
     fn theme_filename() -> String {
