@@ -67,13 +67,11 @@ fn  quantity(val: u32) -> String{
 impl Part for GitInfo {
     fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
         let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
-        let data = str::from_utf8(&output.stdout)?;
-        if data == "" { return Ok(Vec::new()); }
-        let mut lines: Vec<&str> = data.split("\n").collect();
-        lines.pop();
+        let data = &output.stdout;
+        if data.len() == 0 { return Ok(Vec::new()); }
+        let mut lines = data.split(|x| *x == ('\n' as u8));
 
-        let mut iter = lines.into_iter();
-        let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
+        let branch_line = str::from_utf8(lines.next().ok_or(Error::from_str("Empty git output"))?)?;
         let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
         let aheadbehind_re = Regex::new(r"\[(ahead (\d+))?(, )?(behind (\d+))?\]")?;
 
@@ -85,16 +83,17 @@ impl Part for GitInfo {
                 self.behind += behind.as_str().parse()?;
             }
         }
-        let branch = {
+        let branch ={
             if let Some(caps) = re.captures(branch_line) {
                 caps["local"].to_owned()
             } else {
                 get_detached_branch_name()?
             }
         };
-        for x in iter {
-            let file = x.get(..2).ok_or(Error::from_str("Invalid file status line"))?;
-            self.add_file(file)?;
+        for x in lines {
+            if let Some(file) = x.get(..2) {
+                self.add_file(str::from_utf8(file)?)?;
+            }
         }
 
         let (branch_fg, branch_bg) = if self.is_dirty() {
