@@ -1,3 +1,5 @@
+#![feature(libc)]
+extern crate libc;
 extern crate regex;
 
 mod powerline;
