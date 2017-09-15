@@ -1,5 +1,3 @@
-use std::fs;
-use std::path::Path;
 use ::powerline::*;
 use ::part::*;
 use ::color::Color;
