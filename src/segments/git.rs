@@ -48,7 +48,7 @@ impl GitInfo{
 
 fn get_detached_branch_name() -> Result<String, Error> {
     let child = Command::new("git").args(&["describe", "--tags", "--always"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
-    Ok(if child.status.success() {
+    Ok(if !child.status.success() {
         String::from("Big Bang")
     } else {
         let branch = str::from_utf8(&child.stdout)?.split("\n").next().ok_or(Error::from_str("Empty git output"))?;
@@ -67,34 +67,33 @@ fn  quantity(val: u32) -> String{
 impl Part for GitInfo {
     fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
         let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
-        let data = str::from_utf8(&output.stdout)?;
-        if data == "" { return Ok(Vec::new()); }
-        let mut lines: Vec<&str> = data.split("\n").collect();
-        lines.pop();
 
-        let mut iter = lines.into_iter();
-        let branch_line = iter.next().ok_or(Error::from_str("Empty git output"))?;
-        let re = Regex::new(r"^## (?P<local>[^\.]+)?")?;
-        let aheadbehind_re = Regex::new(r"\[(ahead (\d+))?(, )?(behind (\d+))?\]")?;
+        let data = &output.stdout;
+        if data.len() == 0 { return Ok(Vec::new()); }
+        let mut lines = data.split(|x| *x == ('\n' as u8));
 
-        if let Some(ab_caps) = aheadbehind_re.captures(branch_line) {
-            if let Some(ahead) = ab_caps.get(2) {
-                self.ahead += ahead.as_str().parse()?;
-            }
-            if let Some(behind) = ab_caps.get(5) {
-                self.behind += behind.as_str().parse()?;
-            }
-        }
+        let branch_line = str::from_utf8(lines.next().ok_or(Error::from_str("Empty git output"))?)?;
+        let re = Regex::new(r"^## (?P<local>\S+?)(\.{3}(?P<remote>\S+?)( \[(ahead (?P<ahead>\d+)(, )?)?(behind (?P<behind>\d+))?])?)?$")?;
+
         let branch = {
             if let Some(caps) = re.captures(branch_line) {
-                caps["local"].to_owned()
-            } else {
-                get_detached_branch_name()?
+                if let Some(ahead) = caps.name("ahead") {
+                    self.ahead += ahead.as_str().parse()?;
+                }
+                if let Some(behind) = caps.name("behind") {
+                    self.behind += behind.as_str().parse()?;
+                }
+                caps.name("local").unwrap().as_str().to_string()
+            }
+            else {
+                 get_detached_branch_name()?
             }
         };
-        for x in iter {
-            let file = x.get(..2).ok_or(Error::from_str("Invalid file status line"))?;
-            self.add_file(file)?;
+        
+        for x in lines {
+            if let Some(file) = x.get(..2) {
+                self.add_file(str::from_utf8(file)?)?;
+            }
         }
 
         let (branch_fg, branch_bg) = if self.is_dirty() {

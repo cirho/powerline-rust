@@ -1,3 +1,5 @@
+#![feature(libc)]
+extern crate libc;
 extern crate regex;
 extern crate cpython;
 #[macro_use] extern crate serde_derive;
@@ -19,6 +21,7 @@ fn main() {
     prompt.add_segments(host::Host::new().get_segments().expect("Failed seg: Host"));
     prompt.add_segments(cwd::Cwd::new("~").get_segments().expect("Failed seg: Cwd"));
     prompt.add_segments(git::GitInfo::new().get_segments().expect("Failed seg: Git"));
+    prompt.add_segments(readonly::ReadOnly::new("").get_segments().expect("Failed seg: ReadOnly"));
     prompt.add_segments(cmd::Cmd::new("\\$").get_segments().expect("Failed seg: Cmd"));
     println!("{}", prompt);
 }
