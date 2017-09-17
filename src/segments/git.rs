@@ -63,24 +63,31 @@ fn quantity(val: u32) -> String{
     }
 }
 
+fn get_first_number(s: &str) -> u32 {
+    let mut value = 0;
+    for c in s.chars() {
+        if let Some(x) = c.to_digit(10) {
+            value = value * 10 + x;
+        }
+        else { return value; }
+    }
+    value
+}
+
 fn get_ahead_commits(s: &str) -> Option<u32> {
-    if let Some(pos) = s.find("[ahead") {
-        let start = pos + 7;
+    if let Some(pos) = s.find("ahead") {
+        let start = pos + 6;
         let rest = s.get(start..).unwrap();
-        let end = rest.find("]").unwrap();
-        let value = rest.get(..end).unwrap().parse::<u32>();
-        return value.ok();
+        return Some(get_first_number(rest));
     }
     None
 }
 
 fn get_behind_commits(s: &str) -> Option<u32> {
-    if let Some(pos) = s.find("[behind") {
-        let start = pos + 8;
+    if let Some(pos) = s.find("behind") {
+        let start = pos + 7;
         let rest = s.get(start..).unwrap();
-        let end = rest.find("]").unwrap();
-        let value = rest.get(..end).unwrap().parse::<u32>();
-        return value.ok();
+        return Some(get_first_number(rest));
     }
     None
 }
@@ -120,13 +127,13 @@ impl Part for GitInfo {
         let mut lines = data.split(|x| *x == ('\n' as u8));
 
         let branch_line = str::from_utf8(lines.next().ok_or(Error::from_str("Empty git output"))?)?;
+        
         let branch = {
-            if let Some(branch_search) =  get_branch_name(&branch_line) {
-                if let Some(ahead) = get_ahead_commits(&branch_line) {
-                    self.ahead += ahead;
-                }
-                if let Some(behind) = get_behind_commits(&branch_line) {
-                    self.behind += behind;
+            if let Some(branch_search) = get_branch_name(&branch_line) {
+                if let Some(pos) = branch_line.find('[') {
+                    let info = branch_line.get(pos..).unwrap();
+                    self.ahead += get_ahead_commits(&info).unwrap_or(0);
+                    self.behind += get_behind_commits(&info).unwrap_or(0); 
                 }
                 String::from(branch_search)
             }
@@ -135,9 +142,9 @@ impl Part for GitInfo {
             }
         };
         
-        for x in lines {
-            if let Some(file) = x.get(..2) {
-                self.add_file(str::from_utf8(file)?)?;
+        for line in lines {
+            if let Some(op) = line.get(..2) {
+                self.add_file(str::from_utf8(op)?)?;
             }
         }
 
