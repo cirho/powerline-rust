@@ -3,7 +3,6 @@ use ::powerline::*;
 use ::part::*;
 use std::process::Command;
 use std::str;
-use regex::Regex;
 
 pub struct GitInfo {
     untracked: u32,
@@ -56,7 +55,7 @@ fn get_detached_branch_name() -> Result<String, Error> {
     })
 }
 
-fn  quantity(val: u32) -> String{
+fn quantity(val: u32) -> String{
     if val  > 1 {
         format!("{}",val)
     } else {
@@ -64,6 +63,54 @@ fn  quantity(val: u32) -> String{
     }
 }
 
+fn get_ahead_commits(s: &str) -> Option<u32> {
+    if let Some(pos) = s.find("[ahead") {
+        let start = pos + 7;
+        let rest = s.get(start..).unwrap();
+        let end = rest.find("]").unwrap();
+        let value = rest.get(..end).unwrap().parse::<u32>();
+        return value.ok();
+    }
+    None
+}
+
+fn get_behind_commits(s: &str) -> Option<u32> {
+    if let Some(pos) = s.find("[behind") {
+        let start = pos + 8;
+        let rest = s.get(start..).unwrap();
+        let end = rest.find("]").unwrap();
+        let value = rest.get(..end).unwrap().parse::<u32>();
+        return value.ok();
+    }
+    None
+}
+
+fn get_branch_name<'a>(s: &'a str) -> Option<&'a str> {
+    if let Some(rest) = s.get(3..) {
+        let mut end = 0usize;
+        let mut dot_count = 0;
+        let mut text = rest.chars();
+        
+        while let Some(c) = text.next() {
+            end += 1;
+            if c.is_whitespace() {
+                if let Some(next) = text.next() {
+                    if next != '[' { return None }
+                }
+                break;
+            }
+            if c == '.' {
+                dot_count += 1;
+                if dot_count == 3 { end -= 3; break; }
+            }
+
+        }
+        rest.get(..end)
+    }
+    else {
+        None
+    }
+}
 impl Part for GitInfo {
     fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
         let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
@@ -73,17 +120,15 @@ impl Part for GitInfo {
         let mut lines = data.split(|x| *x == ('\n' as u8));
 
         let branch_line = str::from_utf8(lines.next().ok_or(Error::from_str("Empty git output"))?)?;
-        let re = Regex::new(r"^## (?P<local>\S+?)(\.{3}(?P<remote>\S+?)( \[(ahead (?P<ahead>\d+)(, )?)?(behind (?P<behind>\d+))?])?)?$")?;
-
         let branch = {
-            if let Some(caps) = re.captures(branch_line) {
-                if let Some(ahead) = caps.name("ahead") {
-                    self.ahead += ahead.as_str().parse()?;
+            if let Some(branch_search) =  get_branch_name(&branch_line) {
+                if let Some(ahead) = get_ahead_commits(&branch_line) {
+                    self.ahead += ahead;
                 }
-                if let Some(behind) = caps.name("behind") {
-                    self.behind += behind.as_str().parse()?;
+                if let Some(behind) = get_behind_commits(&branch_line) {
+                    self.behind += behind;
                 }
-                caps.name("local").unwrap().as_str().to_string()
+                String::from(branch_search)
             }
             else {
                  get_detached_branch_name()?
