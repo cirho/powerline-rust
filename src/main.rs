@@ -1,6 +1,5 @@
 #![feature(libc)]
 extern crate libc;
-extern crate regex;
 extern crate cpython;
 #[macro_use] extern crate serde_derive;
 extern crate bincode;

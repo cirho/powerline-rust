@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 
 [dependencies]
-regex = "*"
 cpython = "0.1"
 serde = "1.0.12"
 serde_derive = "1.0.12"
