@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 
 [dependencies]
+users = "0.6.0"
