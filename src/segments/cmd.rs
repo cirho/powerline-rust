@@ -5,10 +5,12 @@ use ::part::*;
 use users;
 
 pub struct Cmd {
+    normal: &'static str,
+    root: &'static str,
 }
 impl Cmd {
-    pub fn new() -> Cmd {
-        Cmd { }
+    pub fn new(normal: &'static str, root: &'static str) -> Cmd {
+        Cmd { normal, root }
     }
 }
 
@@ -21,7 +23,7 @@ impl Part for Cmd {
             (Color::CMD_PASSED_FG, Color::CMD_PASSED_BG)
         };
         let is_root = users::get_current_uid() == 0;
-        let special = if is_root { "#" } else { "$" };
+        let special = if is_root { self.root } else { self.normal };
         Ok(vec![Segment::simple(&format!(" {} ", special), fg, bg)])
     }
 }
