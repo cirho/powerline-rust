@@ -2,13 +2,15 @@ use std::env;
 use ::color::Color;
 use ::powerline::*;
 use ::part::*;
+use users;
 
 pub struct Cmd {
-    special: &'static str,
+    normal: &'static str,
+    root: &'static str,
 }
 impl Cmd {
-    pub fn new(special: &'static str) -> Cmd {
-        Cmd { special }
+    pub fn new(normal: &'static str, root: &'static str) -> Cmd {
+        Cmd { normal, root }
     }
 }
 
@@ -20,6 +22,8 @@ impl Part for Cmd {
         } else {
             (Color::CMD_PASSED_FG, Color::CMD_PASSED_BG)
         };
-        Ok(vec![Segment::simple(&format!(" {} ", self.special), fg, bg)])
+        let is_root = users::get_current_uid() == 0;
+        let special = if is_root { self.root } else { self.normal };
+        Ok(vec![Segment::simple(&format!(" {} ", special), fg, bg)])
     }
 }

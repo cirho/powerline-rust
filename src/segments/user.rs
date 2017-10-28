@@ -1,6 +1,7 @@
 use ::color::Color;
 use ::powerline::*;
 use ::part::*;
+use users;
 
 pub struct User;
 impl User {
@@ -12,9 +13,10 @@ impl User {
 impl Part for User {
 	fn get_segments(self) -> Result<Vec<Segment>, Error> {
 		// TODO: Bash only
-		// TODO: user special color for root
+		let is_root = users::get_current_uid() == 0;
+		let bg = if is_root { Color::USERNAME_ROOT_BG } else { Color::USERNAME_BG };
 		Ok(vec![
-			Segment::simple(" \\u ", Color::USERNAME_FG, Color::USERNAME_BG)
+			Segment::simple(" \\u ", Color::USERNAME_FG, bg)
 		])
 	}
 }
