@@ -1,23 +1,23 @@
-[root]
-name = "powerline-rust"
+[[package]]
+name = "libc"
+version = "0.2.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "powerline"
 version = "0.1.0"
 dependencies = [
  "users 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "libc"
-version = "0.2.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "users"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
-"checksum libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)" = "56cce3130fd040c28df6f495c8492e5ec5808fb4c9093c310df02b0c8f030148"
+"checksum libc 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "5ba3df4dcb460b9dfbd070d41c94c19209620c191b0340b929ce748a2bcd42d2"
 "checksum users 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "99ab1b53affc9f75f57da4a8b051a188e84d20d43bea0dd9bd8db71eebbca6da"

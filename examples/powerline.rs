@@ -1,14 +1,7 @@
-#![feature(libc)]
-extern crate libc;
-extern crate users;
+extern crate powerline;
 
-mod powerline;
-mod segments;
-mod part;
-mod color;
-
-use segments::*;
-use part::*;
+use powerline::segments::*;
+use powerline::part::*;
 
 fn main() {
     let mut prompt = powerline::Powerline::new();
