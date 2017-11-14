@@ -6,10 +6,13 @@ use ::part::*;
 
 pub struct Cwd {
     special: &'static str,
+    max_length: i32,
+    wanted_seg_num: i32,
 }
+
 impl Cwd {
-    pub fn new(special: &'static str) -> Cwd {
-        Cwd { special }
+    pub fn new(special: &'static str, max_length: i32, wanted_seg_num: i32) -> Cwd {
+        Cwd { special, max_length, wanted_seg_num }
     }
 }
 
@@ -32,8 +35,20 @@ impl Part for Cwd {
         } else {
             cwd.as_str()
         };
+        let dots = "\u{2026}";
+        let depth: i32 = cwd_slice.matches("/").count() as i32- 1;
+        let iter: Vec<&str> = if (cwd_slice.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
+            let left = self.wanted_seg_num / 2;
+            let right = self.wanted_seg_num - left;
+            let start = cwd_slice.split("/").skip(1).take(left as usize);
+            let end = cwd_slice.split("/").skip((depth - right + 2) as usize);
+            start.chain(dots.split("/")).chain(end).collect()
+        }
+        else {
+            cwd_slice.split("/").skip(1).collect()
+        };
 
-        for val in cwd_slice.split("/").skip(1) {
+        for val in iter {
             segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
         }
         if let Some(last) = segments.last_mut() {
@@ -42,6 +57,7 @@ impl Part for Cwd {
             last.sep = '\u{E0B0}';
             last.sep_col = last.bg;
         }
+
         Ok(segments)
     }
 }
