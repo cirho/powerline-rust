@@ -6,5 +6,6 @@ pub mod powerline;
 pub mod segments;
 pub mod part;
 pub mod color;
+pub mod theme;
 
 pub use powerline::*;
