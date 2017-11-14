@@ -3,6 +3,7 @@ use ::powerline::*;
 use ::part::*;
 use std::process::Command;
 use std::str;
+use std::env;
 
 pub struct GitInfo {
     untracked: u32,
@@ -118,8 +119,29 @@ fn get_branch_name<'a>(s: &'a str) -> Option<&'a str> {
         None
     }
 }
+
+fn git_dir_exists() -> bool {
+    let mut git_dir = env::current_dir().unwrap();
+    loop {
+        git_dir.push(".git/");
+        
+        if git_dir.exists() {
+            return true;
+        }
+
+        git_dir.pop();
+        if git_dir.pop() == false {
+            return false;
+        }
+    }
+}
+
 impl Part for GitInfo {
     fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
+        if !git_dir_exists() {
+            return Ok(Vec::new());
+        }
+        
         let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().map_err(|e| Error::wrap(e, "Failed to run git"))?;
 
         let data = &output.stdout;
