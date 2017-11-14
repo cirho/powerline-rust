@@ -55,70 +55,7 @@ pub enum Color {
 
     VIRTUAL_ENV_BG,
     VIRTUAL_ENV_FG,
-    Custom(i32),
 }
 impl Clone for Color{
     fn clone(&self) -> Color { *self }
-}
-impl Color {
-    fn code(&self) -> i32 {
-        match self{
-            &Color::USERNAME_FG => 250,
-            &Color::USERNAME_BG => 240,
-            &Color::USERNAME_ROOT_BG => 124,
-
-            &Color::HOSTNAME_FG => 250,
-            &Color::HOSTNAME_BG => 238,
-
-            &Color::HOME_BG => 31,
-            &Color::HOME_FG => 15,
-            &Color::PATH_BG => 237,
-            &Color::PATH_FG => 250,
-            &Color::CWD_FG => 254,
-            &Color::SEPARATOR_FG => 244,
-
-            &Color::READONLY_BG => 124,
-            &Color::READONLY_FG => 254,
-
-            &Color::SSH_BG => 166,
-            &Color::SSH_FG => 254,
-
-            &Color::REPO_CLEAN_BG => 148,
-            &Color::REPO_CLEAN_FG => 0,
-            &Color::REPO_DIRTY_BG => 161,
-            &Color::REPO_DIRTY_FG => 15,
-
-            &Color::JOBS_FG => 39,
-            &Color::JOBS_BG => 238,
-
-            &Color::CMD_PASSED_BG => 236,
-            &Color::CMD_PASSED_FG => 15,
-            &Color::CMD_FAILED_BG => 161,
-            &Color::CMD_FAILED_FG => 15,
-
-            &Color::SVN_CHANGES_BG => 148,
-            &Color::SVN_CHANGES_FG => 22,
-
-            &Color::GIT_AHEAD_BG => 240,
-            &Color::GIT_AHEAD_FG => 250,
-            &Color::GIT_BEHIND_BG => 240,
-            &Color::GIT_BEHIND_FG => 250,
-            &Color::GIT_STAGED_BG => 22,
-            &Color::GIT_STAGED_FG => 15,
-            &Color::GIT_NOTSTAGED_BG => 130,
-            &Color::GIT_NOTSTAGED_FG => 15,
-            &Color::GIT_UNTRACKED_BG => 52,
-            &Color::GIT_UNTRACKED_FG => 15,
-            &Color::GIT_CONFLICTED_BG => 9,
-            &Color::GIT_CONFLICTED_FG => 15,
-
-            &Color::VIRTUAL_ENV_BG => 35,
-            &Color::VIRTUAL_ENV_FG => 00,
-            &Color::Custom(col) => col,
-        }
-    }
-
-    pub fn bg_str(&self) -> String { format!("\\[\\e[48;5;{}m\\]", self.code()) }
-    pub fn fg_str(&self) -> String { format!("\\[\\e[38;5;{}m\\]", self.code()) }
-    pub fn reset() -> String { String::from("\\[\\e[0m\\]") }
 }
