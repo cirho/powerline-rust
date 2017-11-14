@@ -1,5 +1,5 @@
 [package]
-name = "powerline-rust"
+name = "powerline"
 version = "0.1.0"
 authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 
