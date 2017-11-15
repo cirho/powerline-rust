@@ -20,6 +20,15 @@ fn pb_to_str(path: path::PathBuf) -> Result<String, Error> {
     Ok(path.to_str().ok_or(Error::from_str("Path is not valid UTF-8"))?.to_string())
 }
 
+fn append_cwd_segments<'a, I>(segments: &mut Vec<Segment>, iter: I) 
+where
+    I: Iterator<Item = &'a str>
+{
+    for val in iter {
+        segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
+    }
+}
+
 impl Part for Cwd {
     fn get_segments(self) -> Result<Vec<Segment>, Error> {
         let cwd = pb_to_str(env::current_dir()?)?;
@@ -35,22 +44,22 @@ impl Part for Cwd {
         } else {
             cwd.as_str()
         };
-        let dots = "\u{2026}";
         let depth: i32 = cwd_slice.matches("/").count() as i32- 1;
-        let iter: Vec<&str> = if (cwd_slice.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
+        if (cwd_slice.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
             let left = self.wanted_seg_num / 2;
             let right = self.wanted_seg_num - left;
+
             let start = cwd_slice.split("/").skip(1).take(left as usize);
             let end = cwd_slice.split("/").skip((depth - right + 2) as usize);
-            start.chain(dots.split("/")).chain(end).collect()
+            
+            append_cwd_segments(&mut segments, start);
+            segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
+            append_cwd_segments(&mut segments, end);
         }
         else {
-            cwd_slice.split("/").skip(1).collect()
+            append_cwd_segments(&mut segments, cwd_slice.split("/").skip(1));
         };
 
-        for val in iter {
-            segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
-        }
         if let Some(last) = segments.last_mut() {
             if last.val == "  " { last.val = " / ".to_owned()}
             last.fg = Color::CWD_FG;
