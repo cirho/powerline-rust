@@ -1,6 +1,6 @@
 use color::Color;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Theme {
     username_fg: u8,
     username_bg: u8,
@@ -104,11 +104,6 @@ impl Theme {
     }
 
 }
-
-impl Clone for Theme{
-    fn clone(&self) -> Theme { *self }
-}
-
 
 pub static DEFAULT_THEME: Theme = Theme {
     username_fg: 250,
