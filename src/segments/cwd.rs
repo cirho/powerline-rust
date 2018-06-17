@@ -1,72 +1,71 @@
-use std::path;
+use color::Color;
+use part::*;
+use powerline::*;
 use std::env;
-use ::powerline::*;
-use ::color::Color;
-use ::part::*;
 
 pub struct Cwd {
-    special: &'static str,
-    max_length: i32,
-    wanted_seg_num: i32,
+	special: &'static str,
+	max_length: usize,
+	wanted_seg_num: usize,
 }
 
 impl Cwd {
-    pub fn new(special: &'static str, max_length: i32, wanted_seg_num: i32) -> Cwd {
-        Cwd { special, max_length, wanted_seg_num }
-    }
+	pub fn new(special: &'static str, max_length: usize, wanted_seg_num: usize) -> Cwd {
+		Cwd {
+			special,
+			max_length,
+			wanted_seg_num,
+		}
+	}
 }
 
-fn pb_to_str(path: path::PathBuf) -> Result<String, Error> {
-    Ok(path.to_str().ok_or(Error::from_str("Path is not valid UTF-8"))?.to_string())
-}
-
-fn append_cwd_segments<'a, I>(segments: &mut Vec<Segment>, iter: I) 
+fn append_cwd_segments<'a, I>(segments: &mut Vec<Segment>, iter: I)
 where
-    I: Iterator<Item = &'a str>
+	I: Iterator<Item = &'a str>,
 {
-    for val in iter {
-        segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
-    }
+	for val in iter {
+		segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
+	}
 }
 
 impl Part for Cwd {
-    fn get_segments(self) -> Result<Vec<Segment>, Error> {
-        let cwd = pb_to_str(env::current_dir()?)?;
-        let mut segments = Vec::new();
-        let cwd_slice = if let Some(home_path) = env::home_dir() {
-            let home = pb_to_str(home_path)?;
-            if let Some(pos) = cwd.find(&home) {
-                segments.push(Segment::simple(&format!(" {} ", self.special), Color::HOME_FG, Color::HOME_BG) );
-                &cwd[pos+home.len()..]
-            } else {
-                cwd.as_str()
-            }
-        } else {
-            cwd.as_str()
-        };
-        let depth: i32 = cwd_slice.matches("/").count() as i32- 1;
-        if (cwd_slice.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
-            let left = self.wanted_seg_num / 2;
-            let right = self.wanted_seg_num - left;
+	fn get_segments(self) -> Result<Vec<Segment>, Error> {
+		let current_dir = env::current_dir()?;
+		let mut cwd = current_dir.to_str().unwrap();
+		let mut segments = Vec::new();
 
-            let start = cwd_slice.split("/").skip(1).take(left as usize);
-            let end = cwd_slice.split("/").skip((depth - right + 2) as usize);
-            
-            append_cwd_segments(&mut segments, start);
-            segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG ) );
-            append_cwd_segments(&mut segments, end);
-        }
-        else {
-            append_cwd_segments(&mut segments, cwd_slice.split("/").skip(1));
-        };
+		if let Some(home_path) = env::home_dir() {
+			let home_str = home_path.to_str().unwrap();
+			if cwd.starts_with(home_str) {
+				segments.push(Segment::simple(&format!(" {} ", self.special), Color::HOME_FG, Color::HOME_BG));
+				cwd = &cwd[home_str.len()..]
+			}
+		}
 
-        if let Some(last) = segments.last_mut() {
-            if last.val == "  " { last.val = " / ".to_owned()}
-            last.fg = Color::CWD_FG;
-            last.sep = '\u{E0B0}';
-            last.sep_col = last.bg;
-        }
+		let depth = cwd.matches("/").count() - 1;
+		if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
+			let left = self.wanted_seg_num / 2;
+			let right = self.wanted_seg_num - left;
 
-        Ok(segments)
-    }
+			let start = cwd.split("/").skip(1).take(left);
+			let end = cwd.split("/").skip(depth - right + 2);
+
+			append_cwd_segments(&mut segments, start);
+			segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
+			append_cwd_segments(&mut segments, end);
+		} else {
+			append_cwd_segments(&mut segments, cwd.split("/").skip(1));
+		};
+
+		if let Some(last) = segments.last_mut() {
+			if last.val == "  " {
+				last.val = " / ".to_string()
+			}
+			last.fg = Color::CWD_FG;
+			last.sep = '\u{E0B0}';
+			last.sep_col = last.bg;
+		}
+
+		Ok(segments)
+	}
 }

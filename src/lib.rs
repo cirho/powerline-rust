@@ -2,10 +2,10 @@
 extern crate libc;
 extern crate users;
 
+pub mod color;
+pub mod part;
 pub mod powerline;
 pub mod segments;
-pub mod part;
-pub mod color;
 pub mod theme;
 
 pub use powerline::*;

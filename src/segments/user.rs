@@ -1,6 +1,6 @@
-use ::color::Color;
-use ::powerline::*;
-use ::part::*;
+use color::Color;
+use part::*;
+use powerline::*;
 use users;
 
 pub struct User;
@@ -15,8 +15,6 @@ impl Part for User {
 		// TODO: Bash only
 		let is_root = users::get_current_uid() == 0;
 		let bg = if is_root { Color::USERNAME_ROOT_BG } else { Color::USERNAME_BG };
-		Ok(vec![
-			Segment::simple(" \\u ", Color::USERNAME_FG, bg)
-		])
+		Ok(vec![Segment::simple(" \\u ", Color::USERNAME_FG, bg)])
 	}
 }
