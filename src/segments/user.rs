@@ -6,7 +6,7 @@ use users;
 pub struct User;
 impl User {
 	pub fn new() -> User {
-		User {}
+		User
 	}
 }
 

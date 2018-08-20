@@ -1,20 +1,22 @@
 use color::Color;
 use part::*;
 use powerline::*;
-use std::env;
+use std::{env, path};
 
 pub struct Cwd {
 	special: &'static str,
 	max_length: usize,
 	wanted_seg_num: usize,
+	resolve_symlinks: bool,
 }
 
 impl Cwd {
-	pub fn new(special: &'static str, max_length: usize, wanted_seg_num: usize) -> Cwd {
+	pub fn new(special: &'static str, max_length: usize, wanted_seg_num: usize, resolve_symlinks: bool) -> Cwd {
 		Cwd {
 			special,
 			max_length,
 			wanted_seg_num,
+			resolve_symlinks,
 		}
 	}
 }
@@ -30,7 +32,12 @@ where
 
 impl Part for Cwd {
 	fn get_segments(self) -> Result<Vec<Segment>, Error> {
-		let current_dir = env::current_dir()?;
+		let current_dir = if self.resolve_symlinks {
+			env::current_dir()?
+		} else {
+			path::PathBuf::from(env::var("PWD")?)
+		};
+
 		let mut cwd = current_dir.to_str().unwrap();
 		let mut segments = Vec::new();
 
