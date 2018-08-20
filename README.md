@@ -9,17 +9,17 @@ Although, similar results **can be archived** by **customization**.
 
 There is a demand to recompile every time while customizing, but you change your prompt only once upon a time. I think performance beneficence is worth it.
 
-# Advantages 
+## Advantages 
 - blazing fast (less than 0.010s)
 - only necessary dependencies  ([users](https://crates.io/crates/users) crate)
 - runs git backend only when needed (huge time improvements in directories not in git tree)
-# Simple installation
+## Simple installation
 ```bash
 git clone https://github.com/Xeoeen/powerline-rust
 cd powerline-rust
 cargo +nightly install
 ```
-# Setting up shell
+## Setting up shell
 #### Make sure you have executable in `$PATH`
 ### Bash
 ```bash
@@ -32,7 +32,7 @@ if [ "$TERM" != "linux" ]; then
 fi
 ```
 
-# Custom shell prompt
+## Custom shell prompt
 Simply create new rust program that fulfils your requirements.
 ```rust
 extern crate powerline;
@@ -51,22 +51,22 @@ fn main() {
 }
 
 ```
-# Tips and trics
-## Strip executable
+## Tips and trics
+### Strip executable
 Remove unnecessary symbols from file to greatly reduce size of it.
 Theoretically it can reduce time of execution.
 ```bash
 cd ~/.cargo/bin/
 strip powerline
 ```
-## Say goodbye to jemalloc and welcome system allocator
+### Say goodbye to jemalloc and welcome system allocator
 Again it can make everything faster.
 ```rust
 // add at the top of source code
 #[global_allocator]
 static GLOBAL: std::alloc::System = std::alloc::System;
 ```
-## Use LTO and other tricks
+### Use LTO and other tricks
 Same matter.
 ```rust
 // Cargo.toml
@@ -75,7 +75,7 @@ lto = true
 panic = 'abort'
 ```
 
-## Custom theme
+### Custom theme
 Nothing more to add.
 ```rust
 extern crate powerline;
