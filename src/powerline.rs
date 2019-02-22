@@ -47,7 +47,25 @@ impl Powerline {
 			self.segments.push(segment);
 		}
 	}
+}
 
+#[cfg(feature = "bare-colors")]
+impl Powerline {
+	pub fn bg_str(&self, color: Color) -> String {
+		format!("\x1b[48;5;{}m", self.theme.get(color))
+	}
+
+	pub fn fg_str(&self, color: Color) -> String {
+		format!("\x1b[38;5;{}m", self.theme.get(color))
+	}
+
+	pub fn reset(&self) -> String {
+		String::from("\x1b[0m")
+	}
+}
+
+#[cfg(feature = "bash-colors")]
+impl Powerline {
 	pub fn bg_str(&self, color: Color) -> String {
 		format!("\\[\\e[48;5;{}m\\]", self.theme.get(color))
 	}
@@ -76,7 +94,6 @@ impl fmt::Display for Powerline {
 				seg.sep
 			)?;
 		}
-		write!(f, "{} ", self.reset())?;
-		Ok(())
+		write!(f, "{} ", self.reset())
 	}
 }
