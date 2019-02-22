@@ -5,7 +5,10 @@ authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 
 [dependencies]
 users = "0.7.0"
+libc = "0.2"
 
-[profile.release]
-lto = true
-panic = 'abort'
+
+[features]
+default = ["bash-colors"]
+bash-colors = []
+bare-colors = []
