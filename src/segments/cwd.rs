@@ -55,7 +55,7 @@ impl Part for Cwd {
 			let right = self.wanted_seg_num - left;
 
 			let start = cwd.split("/").skip(1).take(left);
-			let end = cwd.split("/").skip(depth - right + 2);
+			let end = cwd.split("/").skip(depth - right + 1);
 
 			append_cwd_segments(&mut segments, start);
 			segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
