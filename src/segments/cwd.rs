@@ -49,7 +49,7 @@ impl Part for Cwd {
 			}
 		}
 
-		let depth = cwd.matches("/").count() - 1;
+		let depth = cwd.matches("/").count();
 		if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
 			let left = self.wanted_seg_num / 2;
 			let right = self.wanted_seg_num - left;
