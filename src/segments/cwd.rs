@@ -49,13 +49,13 @@ impl Part for Cwd {
 			}
 		}
 
-		let depth = cwd.matches("/").count() - 1;
+		let depth = cwd.matches("/").count();
 		if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
 			let left = self.wanted_seg_num / 2;
 			let right = self.wanted_seg_num - left;
 
 			let start = cwd.split("/").skip(1).take(left);
-			let end = cwd.split("/").skip(depth - right + 2);
+			let end = cwd.split("/").skip(depth - right + 1);
 
 			append_cwd_segments(&mut segments, start);
 			segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
