@@ -59,13 +59,6 @@ Theoretically it can reduce time of execution.
 cd ~/.cargo/bin/
 strip powerline
 ```
-### Say goodbye to jemalloc and welcome system allocator
-Again it can make everything faster.
-```rust
-// add at the top of source code
-#[global_allocator]
-static GLOBAL: std::alloc::System = std::alloc::System;
-```
 ### Use LTO and other tricks
 Same matter.
 ```rust
