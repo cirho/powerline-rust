@@ -10,13 +10,9 @@ impl User {
 
 impl Part for User {
 	fn get_segments(self) -> Result<Vec<Segment>, Error> {
-		// TODO: Bash only
-		let is_root = users::get_current_uid() == 0;
-		let bg = if is_root { Color::USERNAME_ROOT_BG } else { Color::USERNAME_BG };
-		Ok(vec![Segment::simple(
-			&format!(" {} ", users::get_current_username().unwrap().to_str().unwrap()),
-			Color::USERNAME_FG,
-			bg,
-		)])
+		let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
+		let bg = if user.uid() == 0 { Color::USERNAME_ROOT_BG } else { Color::USERNAME_BG };
+
+		Ok(vec![Segment::simple(&format!(" {} ", user.name().to_str().unwrap()), Color::USERNAME_FG, bg)])
 	}
 }

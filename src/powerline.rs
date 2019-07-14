@@ -11,9 +11,9 @@ pub struct Segment {
 }
 
 impl Segment {
-	pub fn simple(val: &str, fg: Color, bg: Color) -> Segment {
+	pub fn simple<S: Into<String>>(val: S, fg: Color, bg: Color) -> Segment {
 		Segment {
-			val: val.to_string(),
+			val: val.into(),
 			fg,
 			bg,
 			sep: '\u{E0B0}',
@@ -21,9 +21,9 @@ impl Segment {
 		}
 	}
 
-	pub fn special(val: &str, fg: Color, bg: Color, sep: char, sep_col: Color) -> Segment {
+	pub fn special<S: Into<String>>(val: S, fg: Color, bg: Color, sep: char, sep_col: Color) -> Segment {
 		Segment {
-			val: val.to_string(),
+			val: val.into(),
 			fg,
 			bg,
 			sep,
