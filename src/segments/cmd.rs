@@ -1,8 +1,6 @@
-use color::Color;
-use part::*;
-use powerline::*;
 use std::env;
-use users;
+
+use crate::{color::Color, part::*, powerline::*, Error};
 
 pub struct Cmd {
 	normal: &'static str,
@@ -26,7 +24,7 @@ impl Cmd {
 
 impl Part for Cmd {
 	fn get_segments(self) -> Result<Vec<Segment>, Error> {
-		let (fg, bg) = if self.status.unwrap_or_else(|| env::args().nth(1).unwrap_or("".to_owned()) == "0") {
+		let (fg, bg) = if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
 			(Color::CMD_PASSED_FG, Color::CMD_PASSED_BG)
 		} else {
 			(Color::CMD_FAILED_FG, Color::CMD_FAILED_BG)

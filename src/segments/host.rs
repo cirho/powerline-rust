@@ -1,11 +1,10 @@
-pub use color::Color;
-pub use part::*;
-pub use powerline::*;
+use crate::{color::Color, part::*, powerline::*, Error};
 
 pub struct Host;
+
 impl Host {
 	pub fn new() -> Host {
-		Host {}
+		Host
 	}
 }
 

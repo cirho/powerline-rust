@@ -1,4 +1,4 @@
-use color::Color;
+use crate::color::Color;
 
 #[derive(Copy, Clone)]
 pub struct Theme {

@@ -1,15 +1,14 @@
-use color::Color;
-use part::*;
-use powerline::*;
 use std::{env, process::Command, str};
 
+use crate::{color::Color, part::*, powerline::*, Error};
+
 pub struct GitInfo {
-	pub untracked: u32,
-	pub conflicted: u32,
-	pub non_staged: u32,
-	pub ahead: u32,
-	pub behind: u32,
-	pub staged: u32,
+	untracked: u32,
+	conflicted: u32,
+	non_staged: u32,
+	ahead: u32,
+	behind: u32,
+	staged: u32,
 }
 
 impl GitInfo {
@@ -28,7 +27,7 @@ impl GitInfo {
 		(self.untracked + self.conflicted + self.staged + self.non_staged) > 0
 	}
 
-	fn add_file(&mut self, begin: &str) -> Result<(), Error> {
+	fn add_file(&mut self, begin: &str) {
 		match begin {
 			"??" => self.untracked += 1,
 			"DD" => self.conflicted += 1,
@@ -40,8 +39,8 @@ impl GitInfo {
 			"AA" => self.conflicted += 1,
 			_ => {
 				let mut chars = begin.chars();
-				let a = chars.next().ok_or(Error::from_str("Invalid file status"))?;
-				let b = chars.next().ok_or(Error::from_str("Invalid file status"))?;
+				let a = chars.next().expect("invalid file status");
+				let b = chars.next().expect("invalid file status");
 				if b != ' ' {
 					self.non_staged += 1;
 				}
@@ -50,7 +49,6 @@ impl GitInfo {
 				}
 			},
 		};
-		Ok(())
 	}
 }
 
@@ -59,11 +57,11 @@ fn get_detached_branch_name() -> Result<String, Error> {
 		.args(&["describe", "--tags", "--always"])
 		.output()
 		.map_err(|e| Error::wrap(e, "Failed to run git"))?;
-	Ok(if !child.status.success() {
-		String::from("Big Bang")
-	} else {
-		let branch = str::from_utf8(&child.stdout)?.split("\n").next().ok_or(Error::from_str("Empty git output"))?;
+	Ok(if child.status.success() {
+		let branch = str::from_utf8(&child.stdout)?.split('\n').next().ok_or_else(|| Error::from_str("Empty git output"))?;
 		format!("\u{2693}{}", branch)
+	} else {
+		String::from("Big Bang")
 	})
 }
 
@@ -147,13 +145,13 @@ impl Part for GitInfo {
 			.map_err(|e| Error::wrap(e, "Failed to run git"))?
 			.stdout;
 
-		if output.len() == 0 {
+		if output.is_empty() {
 			return Ok(vec![]);
 		}
 
-		let mut lines = output.split(|x| *x == ('\n' as u8));
+		let mut lines = output.split(|x| *x == (b'\n'));
 
-		let branch_line = str::from_utf8(lines.next().ok_or(Error::from_str("Empty git output"))?)?;
+		let branch_line = str::from_utf8(lines.next().ok_or_else(|| Error::from_str("Empty git output"))?)?;
 
 		let branch_name = {
 			if let Some(branch_name) = get_branch_name(&branch_line) {
@@ -169,7 +167,7 @@ impl Part for GitInfo {
 		};
 
 		for op in lines.flat_map(|line| line.get(..2)) {
-			self.add_file(str::from_utf8(op)?)?;
+			self.add_file(str::from_utf8(op)?);
 		}
 
 		let (branch_fg, branch_bg) = if self.is_dirty() {

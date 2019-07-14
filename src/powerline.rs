@@ -1,6 +1,6 @@
-use color::Color;
 use std::fmt;
-use theme::Theme;
+
+use crate::{color::Color, theme::Theme};
 
 pub struct Segment {
 	pub val: String,
@@ -15,7 +15,7 @@ impl Segment {
 		Segment {
 			val: val.to_string(),
 			fg,
-			bg: bg.clone(),
+			bg,
 			sep: '\u{E0B0}',
 			sep_col: bg,
 		}
@@ -89,7 +89,7 @@ impl fmt::Display for Powerline {
 				self.fg_str(seg.fg),
 				self.bg_str(seg.bg),
 				seg.val,
-				iter.peek().map(|next| self.bg_str(next.bg)).unwrap_or(self.reset()),
+				iter.peek().map_or_else(|| self.reset(), |next| self.bg_str(next.bg)),
 				self.fg_str(seg.sep_col),
 				seg.sep
 			)?;

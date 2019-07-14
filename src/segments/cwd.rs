@@ -1,7 +1,6 @@
-use color::Color;
-use part::*;
-use powerline::*;
 use std::{env, path};
+
+use crate::{color::Color, part::*, powerline::*, Error};
 
 pub struct Cwd {
 	special: &'static str,
@@ -49,19 +48,19 @@ impl Part for Cwd {
 			}
 		}
 
-		let depth = cwd.matches("/").count();
+		let depth = cwd.matches('/').count();
 		if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
 			let left = self.wanted_seg_num / 2;
 			let right = self.wanted_seg_num - left;
 
-			let start = cwd.split("/").skip(1).take(left);
-			let end = cwd.split("/").skip(depth - right + 1);
+			let start = cwd.split('/').skip(1).take(left);
+			let end = cwd.split('/').skip(depth - right + 1);
 
 			append_cwd_segments(&mut segments, start);
 			segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
 			append_cwd_segments(&mut segments, end);
 		} else {
-			append_cwd_segments(&mut segments, cwd.split("/").skip(1));
+			append_cwd_segments(&mut segments, cwd.split('/').skip(1));
 		};
 
 		if let Some(last) = segments.last_mut() {

@@ -1,8 +1,6 @@
-use color::Color;
-use libc;
-use part::*;
-use powerline::*;
 use std::ffi::CString;
+
+use crate::{color::Color, part::*, powerline::*, Error};
 
 pub struct ReadOnly {
 	special: &'static str,
