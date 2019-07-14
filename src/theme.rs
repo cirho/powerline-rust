@@ -27,16 +27,10 @@ pub struct Theme {
 	pub repo_dirty_bg: u8,
 	pub repo_dirty_fg: u8,
 
-	pub jobs_fg: u8,
-	pub jobs_bg: u8,
-
 	pub cmd_passed_bg: u8,
 	pub cmd_passed_fg: u8,
 	pub cmd_failed_bg: u8,
 	pub cmd_failed_fg: u8,
-
-	pub svn_changes_bg: u8,
-	pub svn_changes_fg: u8,
 
 	pub git_ahead_bg: u8,
 	pub git_ahead_fg: u8,
@@ -50,9 +44,6 @@ pub struct Theme {
 	pub git_untracked_fg: u8,
 	pub git_conflicted_bg: u8,
 	pub git_conflicted_fg: u8,
-
-	pub virtual_env_bg: u8,
-	pub virtual_env_fg: u8,
 }
 
 impl Theme {
@@ -77,14 +68,10 @@ impl Theme {
 			Color::REPO_CLEAN_FG => self.repo_clean_fg,
 			Color::REPO_DIRTY_BG => self.repo_dirty_bg,
 			Color::REPO_DIRTY_FG => self.repo_dirty_fg,
-			Color::JOBS_FG => self.jobs_fg,
-			Color::JOBS_BG => self.jobs_bg,
 			Color::CMD_PASSED_BG => self.cmd_passed_bg,
 			Color::CMD_PASSED_FG => self.cmd_passed_fg,
 			Color::CMD_FAILED_BG => self.cmd_failed_bg,
 			Color::CMD_FAILED_FG => self.cmd_failed_fg,
-			Color::SVN_CHANGES_BG => self.svn_changes_bg,
-			Color::SVN_CHANGES_FG => self.svn_changes_fg,
 			Color::GIT_AHEAD_BG => self.git_ahead_bg,
 			Color::GIT_AHEAD_FG => self.git_ahead_fg,
 			Color::GIT_BEHIND_BG => self.git_behind_bg,
@@ -97,8 +84,6 @@ impl Theme {
 			Color::GIT_UNTRACKED_FG => self.git_untracked_fg,
 			Color::GIT_CONFLICTED_BG => self.git_conflicted_bg,
 			Color::GIT_CONFLICTED_FG => self.git_conflicted_fg,
-			Color::VIRTUAL_ENV_BG => self.virtual_env_bg,
-			Color::VIRTUAL_ENV_FG => self.virtual_env_fg,
 		}
 	}
 }
@@ -129,16 +114,10 @@ pub static DEFAULT_THEME: Theme = Theme {
 	repo_dirty_bg: 161,
 	repo_dirty_fg: 15,
 
-	jobs_fg: 39,
-	jobs_bg: 238,
-
 	cmd_passed_bg: 236,
 	cmd_passed_fg: 15,
 	cmd_failed_bg: 161,
 	cmd_failed_fg: 15,
-
-	svn_changes_bg: 148,
-	svn_changes_fg: 22,
 
 	git_ahead_bg: 240,
 	git_ahead_fg: 250,
@@ -152,7 +131,4 @@ pub static DEFAULT_THEME: Theme = Theme {
 	git_untracked_fg: 15,
 	git_conflicted_bg: 9,
 	git_conflicted_fg: 15,
-
-	virtual_env_bg: 35,
-	virtual_env_fg: 00,
 };
