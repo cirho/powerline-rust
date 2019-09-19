@@ -10,9 +10,9 @@ libc = "0.2"
 
 
 [features]
-default = ["bash-colors"]
-bash-colors = []
-bare-colors = []
+default = ["bash-shell"]
+bash-shell = []
+bare-shell = []
 
 [profile.release]
 opt-level = 3

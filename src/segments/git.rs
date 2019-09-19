@@ -1,8 +1,10 @@
-use std::{env, process::Command, str};
+use std::{env, marker::PhantomData, path::PathBuf, process::Command, str};
 
-use crate::{color::Color, part::*, powerline::*, Error};
+use crate::{part::*, powerline::*, terminal::Color, Error, R};
 
-pub struct GitInfo {
+pub struct GitInfo<S: GitScheme>(PhantomData<S>);
+
+pub struct GitData {
 	untracked: u32,
 	conflicted: u32,
 	non_staged: u32,
@@ -11,9 +13,34 @@ pub struct GitInfo {
 	staged: u32,
 }
 
-impl GitInfo {
-	pub fn new() -> GitInfo {
-		GitInfo {
+pub trait GitScheme {
+	const GIT_AHEAD_BG: Color;
+	const GIT_AHEAD_FG: Color;
+	const GIT_BEHIND_BG: Color;
+	const GIT_BEHIND_FG: Color;
+	const GIT_STAGED_BG: Color;
+	const GIT_STAGED_FG: Color;
+	const GIT_NOTSTAGED_BG: Color;
+	const GIT_NOTSTAGED_FG: Color;
+	const GIT_UNTRACKED_BG: Color;
+	const GIT_UNTRACKED_FG: Color;
+	const GIT_CONFLICTED_BG: Color;
+	const GIT_CONFLICTED_FG: Color;
+	const REPO_CLEAN_BG: Color;
+	const REPO_CLEAN_FG: Color;
+	const REPO_DIRTY_BG: Color;
+	const REPO_DIRTY_FG: Color;
+}
+
+impl<S: GitScheme> GitInfo<S> {
+	pub fn new() -> GitInfo<S> {
+		GitInfo(PhantomData)
+	}
+}
+
+impl GitData {
+	fn new() -> GitData {
+		GitData {
 			untracked: 0,
 			conflicted: 0,
 			non_staged: 0,
@@ -69,7 +96,7 @@ fn quantity(val: u32) -> String {
 	if val > 1 {
 		format!("{}", val)
 	} else {
-		String::from("")
+		String::new()
 	}
 }
 
@@ -116,27 +143,27 @@ fn get_branch_name(s: &str) -> Option<&str> {
 	}
 }
 
-fn git_dir_exists() -> bool {
+fn git_dir_exists() -> Option<PathBuf> {
 	let mut git_dir = env::current_dir().unwrap();
 
 	loop {
 		git_dir.push(".git/");
 
 		if git_dir.exists() {
-			return true;
+			return Some(git_dir);
 		}
 
 		git_dir.pop();
 		if !git_dir.pop() {
-			return false;
+			return None;
 		}
 	}
 }
 
-impl Part for GitInfo {
-	fn get_segments(mut self) -> Result<Vec<Segment>, Error> {
-		if !git_dir_exists() {
-			return Ok(vec![]);
+impl<S: GitScheme> Part for GitInfo<S> {
+	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
+		if git_dir_exists().is_none() {
+			return Ok(());
 		}
 
 		let output = Command::new("git")
@@ -146,19 +173,19 @@ impl Part for GitInfo {
 			.stdout;
 
 		if output.is_empty() {
-			return Ok(vec![]);
+			return Ok(());
 		}
 
 		let mut lines = output.split(|x| *x == (b'\n'));
 
 		let branch_line = str::from_utf8(lines.next().ok_or_else(|| Error::from_str("Empty git output"))?)?;
-
+		let mut stats = GitData::new();
 		let branch_name = {
 			if let Some(branch_name) = get_branch_name(&branch_line) {
 				if let Some(pos) = branch_line.find('[') {
 					let info = branch_line.get(pos..).unwrap();
-					self.ahead += get_ahead_commits(&info).unwrap_or(0);
-					self.behind += get_behind_commits(&info).unwrap_or(0);
+					stats.ahead += get_ahead_commits(&info).unwrap_or(0);
+					stats.behind += get_behind_commits(&info).unwrap_or(0);
 				}
 				String::from(branch_name)
 			} else {
@@ -167,16 +194,15 @@ impl Part for GitInfo {
 		};
 
 		for op in lines.flat_map(|line| line.get(..2)) {
-			self.add_file(str::from_utf8(op)?);
+			stats.add_file(str::from_utf8(op)?);
 		}
 
-		let (branch_fg, branch_bg) = if self.is_dirty() {
-			(Color::REPO_DIRTY_FG, Color::REPO_DIRTY_BG)
+		let (branch_fg, branch_bg) = if stats.is_dirty() {
+			(S::REPO_DIRTY_FG, S::REPO_DIRTY_BG)
 		} else {
-			(Color::REPO_CLEAN_FG, Color::REPO_CLEAN_BG)
+			(S::REPO_CLEAN_FG, S::REPO_CLEAN_BG)
 		};
 
-		let mut segments = Vec::new();
 		segments.push(Segment::simple(&format!(" {} ", branch_name), branch_fg, branch_bg));
 		{
 			let mut add_elem = |count, symbol, fg, bg| {
@@ -185,13 +211,13 @@ impl Part for GitInfo {
 					segments.push(Segment::simple(&text, fg, bg));
 				}
 			};
-			add_elem(self.ahead, '\u{2B06}', Color::GIT_AHEAD_FG, Color::GIT_AHEAD_BG);
-			add_elem(self.behind, '\u{2B07}', Color::GIT_BEHIND_FG, Color::GIT_BEHIND_BG);
-			add_elem(self.staged, '\u{2714}', Color::GIT_STAGED_FG, Color::GIT_STAGED_BG);
-			add_elem(self.non_staged, '\u{270E}', Color::GIT_NOTSTAGED_FG, Color::GIT_NOTSTAGED_BG);
-			add_elem(self.untracked, '\u{2753}', Color::GIT_UNTRACKED_FG, Color::GIT_UNTRACKED_BG);
-			add_elem(self.conflicted, '\u{273C}', Color::GIT_CONFLICTED_FG, Color::GIT_CONFLICTED_BG);
+			add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);
+			add_elem(stats.behind, '\u{2B07}', S::GIT_BEHIND_FG, S::GIT_BEHIND_BG);
+			add_elem(stats.staged, '\u{2714}', S::GIT_STAGED_FG, S::GIT_STAGED_BG);
+			add_elem(stats.non_staged, '\u{270E}', S::GIT_NOTSTAGED_FG, S::GIT_NOTSTAGED_BG);
+			add_elem(stats.untracked, '\u{2753}', S::GIT_UNTRACKED_FG, S::GIT_UNTRACKED_BG);
+			add_elem(stats.conflicted, '\u{273C}', S::GIT_CONFLICTED_FG, S::GIT_CONFLICTED_BG);
 		}
-		Ok(segments)
+		Ok(())
 	}
 }

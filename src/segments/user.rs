@@ -1,18 +1,26 @@
-use crate::{color::Color, part::*, powerline::*, Error};
+use std::marker::PhantomData;
 
-pub struct User;
+use crate::{part::*, powerline::*, terminal::Color, R};
 
-impl User {
-	pub fn new() -> User {
-		User
+pub struct User<S: UserScheme>(PhantomData<S>);
+pub trait UserScheme {
+	const USERNAME_ROOT_BG: Color;
+	const USERNAME_BG: Color;
+	const USERNAME_FG: Color;
+}
+
+impl<S: UserScheme> User<S> {
+	pub fn new() -> User<S> {
+		User(PhantomData)
 	}
 }
 
-impl Part for User {
-	fn get_segments(self) -> Result<Vec<Segment>, Error> {
+impl<S: UserScheme> Part for User<S> {
+	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
 		let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
-		let bg = if user.uid() == 0 { Color::USERNAME_ROOT_BG } else { Color::USERNAME_BG };
+		let bg = if user.uid() == 0 { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };
 
-		Ok(vec![Segment::simple(&format!(" {} ", user.name().to_str().unwrap()), Color::USERNAME_FG, bg)])
+		segments.push(Segment::simple(&format!(" {} ", user.name().to_str().unwrap()), S::USERNAME_FG, bg));
+		Ok(())
 	}
 }

@@ -1,16 +1,22 @@
-use crate::{color::Color, part::*, powerline::*, Error};
+use std::marker::PhantomData;
 
-pub struct Host;
+use crate::{part::*, powerline::*, terminal::Color, R};
 
-impl Host {
-	pub fn new() -> Host {
-		Host
+pub struct Host<S: HostScheme>(PhantomData<S>);
+
+pub trait HostScheme {
+	const HOSTNAME_FG: Color;
+	const HOSTNAME_BG: Color;
+}
+impl<S: HostScheme> Host<S> {
+	pub fn new() -> Host<S> {
+		Host(PhantomData)
 	}
 }
 
-impl Part for Host {
-	fn get_segments(self) -> Result<Vec<Segment>, Error> {
-		// TODO: Bash only
-		Ok(vec![Segment::simple(" \\h ", Color::HOSTNAME_FG, Color::HOSTNAME_BG)])
+impl<S: HostScheme> Part for Host<S> {
+	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
+		segments.push(Segment::simple(" \\h ", S::HOSTNAME_FG, S::HOSTNAME_BG));
+		Ok(())
 	}
 }

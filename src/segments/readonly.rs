@@ -1,28 +1,30 @@
-use std::ffi::CString;
+use std::{ffi::CString, marker::PhantomData};
 
-use crate::{color::Color, part::*, powerline::*, Error};
+use crate::{part::*, powerline::*, terminal::Color, R};
 
-pub struct ReadOnly {
-	special: &'static str,
+pub struct ReadOnly<S>(PhantomData<S>);
+
+pub trait ReadOnlyScheme {
+	const READONLY_FG: Color;
+	const READONLY_BG: Color;
+	const READONLY_SYMBOL: &'static str = "";
 }
-
-impl ReadOnly {
-	pub fn new(special: &'static str) -> ReadOnly {
-		ReadOnly { special }
+impl<S: ReadOnlyScheme> ReadOnly<S> {
+	pub fn new() -> ReadOnly<S> {
+		ReadOnly(PhantomData)
 	}
 }
 
-impl Part for ReadOnly {
-	fn get_segments(self) -> Result<Vec<Segment>, Error> {
+impl<S: ReadOnlyScheme> Part for ReadOnly<S> {
+	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
 		let readonly = unsafe {
 			let path = CString::new("./")?;
 			libc::access(path.as_ptr(), libc::W_OK) != 0
 		};
 
-		Ok(if readonly {
-			vec![Segment::simple(&format!(" {} ", self.special), Color::READONLY_FG, Color::READONLY_BG)]
-		} else {
-			vec![]
-		})
+		if readonly {
+			segments.push(Segment::simple(&format!(" {} ", S::READONLY_SYMBOL), S::READONLY_FG, S::READONLY_BG));
+		}
+		Ok(())
 	}
 }

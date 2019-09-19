@@ -1,36 +1,45 @@
-use std::{env, path};
+use std::{env, marker::PhantomData, path};
 
-use crate::{color::Color, part::*, powerline::*, Error};
+use crate::{part::*, powerline::*, terminal::Color, R};
 
-pub struct Cwd {
-	special: &'static str,
+pub struct Cwd<S: CwdScheme> {
 	max_length: usize,
 	wanted_seg_num: usize,
 	resolve_symlinks: bool,
+	scheme: PhantomData<S>,
 }
 
-impl Cwd {
-	pub fn new(special: &'static str, max_length: usize, wanted_seg_num: usize, resolve_symlinks: bool) -> Cwd {
+pub trait CwdScheme {
+	const CWD_FG: Color;
+	const PATH_FG: Color;
+	const PATH_BG: Color;
+	const HOME_FG: Color;
+	const HOME_BG: Color;
+	const SEPARATOR_FG: Color;
+	const CWD_HOME_SYMBOL: &'static str = "~";
+}
+
+impl<S: CwdScheme> Cwd<S> {
+	pub fn new(max_length: usize, wanted_seg_num: usize, resolve_symlinks: bool) -> Cwd<S> {
 		Cwd {
-			special,
 			max_length,
 			wanted_seg_num,
 			resolve_symlinks,
+			scheme: PhantomData,
 		}
 	}
 }
 
-fn append_cwd_segments<'a, I>(segments: &mut Vec<Segment>, iter: I)
-where
-	I: Iterator<Item = &'a str>,
-{
-	for val in iter {
-		segments.push(Segment::special(&format!(" {} ", val), Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
-	}
+macro_rules! append_cwd_segments {
+	($segments: ident, $iter: expr) => {
+		for val in $iter {
+			$segments.push(Segment::special(&format!(" {} ", val), S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
+			}
+	};
 }
 
-impl Part for Cwd {
-	fn get_segments(self) -> Result<Vec<Segment>, Error> {
+impl<S: CwdScheme> Part for Cwd<S> {
+	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
 		let current_dir = if self.resolve_symlinks {
 			env::current_dir()?
 		} else {
@@ -38,12 +47,11 @@ impl Part for Cwd {
 		};
 
 		let mut cwd = current_dir.to_str().unwrap();
-		let mut segments = Vec::new();
 
 		if let Some(home_path) = env::home_dir() {
 			let home_str = home_path.to_str().unwrap();
 			if cwd.starts_with(home_str) {
-				segments.push(Segment::simple(&format!(" {} ", self.special), Color::HOME_FG, Color::HOME_BG));
+				segments.push(Segment::simple(format!(" {} ", S::CWD_HOME_SYMBOL), S::HOME_FG, S::HOME_BG));
 				cwd = &cwd[home_str.len()..]
 			}
 		}
@@ -56,22 +64,22 @@ impl Part for Cwd {
 			let start = cwd.split('/').skip(1).take(left);
 			let end = cwd.split('/').skip(depth - right + 1);
 
-			append_cwd_segments(&mut segments, start);
-			segments.push(Segment::special(" \u{2026} ", Color::PATH_FG, Color::PATH_BG, '\u{E0B1}', Color::SEPARATOR_FG));
-			append_cwd_segments(&mut segments, end);
+			append_cwd_segments!(segments, start);
+			segments.push(Segment::special(" \u{2026} ", S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
+			append_cwd_segments!(segments, end);
 		} else {
-			append_cwd_segments(&mut segments, cwd.split('/').skip(1));
+			append_cwd_segments!(segments, cwd.split('/').skip(1));
 		};
 
 		if let Some(last) = segments.last_mut() {
-			if last.val == "  " {
+			if &last.val == "  " {
 				last.val = " / ".to_string()
 			}
-			last.fg = Color::CWD_FG;
+			last.fg = S::CWD_FG.into_fg();
 			last.sep = '\u{E0B0}';
-			last.sep_col = last.bg;
+			last.sep_col = last.bg.transpose();
 		}
 
-		Ok(segments)
+		Ok(())
 	}
 }

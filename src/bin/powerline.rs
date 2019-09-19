@@ -1,14 +1,16 @@
 extern crate powerline;
 
-use powerline::{part::*, segments::*};
+use powerline::{segments::*, theme::SimpleTheme};
 
 fn main() {
-	let mut prompt = powerline::Powerline::new(powerline::theme::DEFAULT_THEME);
-	prompt.add_segments(user::User::new().get_segments().expect("Failed seg: User"));
-	prompt.add_segments(host::Host::new().get_segments().expect("Failed seg: Host"));
-	prompt.add_segments(cwd::Cwd::new("~", 45, 4, false).get_segments().expect("Failed seg: Cwd"));
-	prompt.add_segments(git::GitInfo::new().get_segments().expect("Failed seg: Git"));
-	prompt.add_segments(readonly::ReadOnly::new("").get_segments().expect("Failed seg: ReadOnly"));
-	prompt.add_segments(cmd::Cmd::new("$", "#").get_segments().expect("Failed seg: Cmd"));
+	let mut prompt = powerline::Powerline::new();
+
+	prompt.add_part(user::User::<SimpleTheme>::new());
+	prompt.add_part(host::Host::<SimpleTheme>::new());
+	prompt.add_part(cwd::Cwd::<SimpleTheme>::new(45, 4, false));
+	prompt.add_part(git::GitInfo::<SimpleTheme>::new());
+	prompt.add_part(readonly::ReadOnly::<SimpleTheme>::new());
+	prompt.add_part(cmd::Cmd::<SimpleTheme>::new());
+
 	println!("{}", prompt);
 }
