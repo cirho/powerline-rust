@@ -41,6 +41,8 @@ impl std::fmt::Display for BgColor {
 		return write!(f, r#"\[\e[48;5;{}m\]"#, self.0);
 		#[cfg(feature = "bare-shell")]
 		return write!(f, "\x1b[48;5;{}m", self.0);
+		#[cfg(feature = "zsh-shell")]
+		return write!(f, "%{{\x1b[48;5;{}m%}}", self.0);
 	}
 }
 
@@ -50,6 +52,8 @@ impl std::fmt::Display for FgColor {
 		return write!(f, r#"\[\e[38;5;{}m\]"#, self.0);
 		#[cfg(feature = "bare-shell")]
 		return write!(f, "\x1b[38;5;{}m", self.0);
+		#[cfg(feature = "zsh-shell")]
+		return write!(f, "%{{\x1b[38;5;{}m%}}", self.0);
 	}
 }
 
@@ -59,5 +63,7 @@ impl std::fmt::Display for Reset {
 		return f.write_str("\x1b[0m");
 		#[cfg(feature = "bash-shell")]
 		return f.write_str(r#"\[\e[0m\]"#);
+		#[cfg(feature = "zsh-shell")]
+		return f.write_str("%{\x1b[39m%}%{\x1b[49m%}");
 	}
 }

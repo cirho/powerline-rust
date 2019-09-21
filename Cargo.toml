@@ -11,9 +11,10 @@ miniserde = { version = "0.1.12", optional = true }
 hostname = "0.1.5"
 
 [features]
-default = ["bash-shell", "git-file-cache"]
+default = ["zsh-shell", "git-file-cache"]
 bash-shell = []
 bare-shell = []
+zsh-shell = []
 git-file-cache = ["miniserde"]
 
 [profile.release]

@@ -33,6 +33,14 @@ if [ "$TERM" != "linux" ]; then
     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
 ```
+### ZSH
+You must also compile with `zsh-shell` feature.
+```zsh
+_update_ps1() {
+    PS1="$(powerline $0)"
+}
+precmd_functions+=(_update_ps1)
+```
 
 ## Custom shell prompt
 Simply create new rust program that fulfils your requirements.
