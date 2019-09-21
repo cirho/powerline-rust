@@ -13,6 +13,8 @@ There is a demand to recompile every time while customizing, but you change your
 - blazing fast (less than 0.010s)
 - only necessary dependencies  ([users](https://crates.io/crates/users) crate)
 - runs git backend only when needed (huge time improvements in directories not in git tree)
+- optional caching git results in memory or file
+
 ## Simple installation
 ```bash
 git clone https://github.com/Xeoeen/powerline-rust
@@ -37,18 +39,21 @@ Simply create new rust program that fulfils your requirements.
 ```rust
 extern crate powerline;
 
-use powerline::{part::*, segments::*};
+use powerline::{modules::*, theme::SimpleTheme};
 
 fn main() {
-	let mut prompt = powerline::Powerline::new(powerline::theme::DEFAULT_THEME);
-	// adjustable cwd segment cropping in case of deep path
-	prompt.add_segments(cwd::Cwd::new("~", 45, 4).get_segments().expect("Failed seg: Cwd"));
-	prompt.add_segments(git::GitInfo::new().get_segments().expect("Failed seg: Git"));
-	// custom symblos everywhere (utf-8 support)
-	prompt.add_segments(readonly::ReadOnly::new("").get_segments().expect("Failed seg: ReadOnly"));
-	prompt.add_segments(cmd::Cmd::new("$", "#").get_segments().expect("Failed seg: Cmd"));
+	let mut prompt = powerline::Powerline::new();
+
+	prompt.add_module(User::<SimpleTheme>::new());
+	prompt.add_module(Host::<SimpleTheme>::new());
+	prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false));
+	prompt.add_module(Git::<SimpleTheme>::new());
+	prompt.add_module(ReadOnly::<SimpleTheme>::new());
+	prompt.add_module(Cmd::<SimpleTheme>::new());
+
 	println!("{}", prompt);
 }
+
 
 ```
 ## Tips and trics
@@ -59,8 +64,8 @@ Theoretically it can reduce time of execution.
 cd ~/.cargo/bin/
 strip powerline
 ```
-### Use LTO and other tricks
-Same matter.
+### Use LTO and other
+
 ```rust
 // Cargo.toml
 [profile.release]
@@ -69,70 +74,25 @@ panic = 'abort'
 ```
 
 ### Custom theme
-Nothing more to add.
+
 ```rust
 extern crate powerline;
 
-use powerline::{part::*, segments::*};
+use powerline::{modules::*, terminal::Color};
 
-fn custom_theme() -> powerline::theme::Theme {
-	powerline::theme::Theme {
-		username_fg: 250,
-		username_bg: 240,
-		username_root_bg: 124,
+struct Theme;
 
-		hostname_fg: 250,
-		hostname_bg: 238,
-
-		home_bg: 31,
-		home_fg: 15,
-		path_bg: 237,
-		path_fg: 250,
-		cwd_fg: 254,
-		separator_fg: 244,
-
-		readonly_bg: 124,
-		readonly_fg: 254,
-
-		ssh_bg: 166,
-		ssh_fg: 254,
-
-		repo_clean_bg: 148,
-		repo_clean_fg: 0,
-		repo_dirty_bg: 161,
-		repo_dirty_fg: 15,
-
-		jobs_fg: 39,
-		jobs_bg: 238,
-
-		cmd_passed_bg: 236,
-		cmd_passed_fg: 15,
-		cmd_failed_bg: 161,
-		cmd_failed_fg: 15,
-
-		svn_changes_bg: 148,
-		svn_changes_fg: 22,
-
-		git_ahead_bg: 240,
-		git_ahead_fg: 250,
-		git_behind_bg: 240,
-		git_behind_fg: 250,
-		git_staged_bg: 22,
-		git_staged_fg: 15,
-		git_notstaged_bg: 130,
-		git_notstaged_fg: 15,
-		git_untracked_bg: 52,
-		git_untracked_fg: 15,
-		git_conflicted_bg: 9,
-		git_conflicted_fg: 15,
-
-		virtual_env_bg: 35,
-		virtual_env_fg: 00,
-	}
+impl CmdScheme for Theme {
+	const CMD_FAILED_BG: Color = Color(161);
+	const CMD_FAILED_FG: Color = Color(15);
+	const CMD_PASSED_BG: Color = Color(236);
+	const CMD_PASSED_FG: Color = Color(15);
 }
 
 fn main() {
-	let mut prompt = powerline::Powerline::new(custom_theme());
+	let mut prompt = powerline::Powerline::new();
+	prompt.add_module(Cmd::<SimpleTheme>::new());
+
 ...
 ```
 

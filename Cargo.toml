@@ -1,6 +1,6 @@
 [package]
 name = "powerline"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Xeoeen <Xeoeen@users.noreply.github.com>"]
 edition = "2018"
 
@@ -8,7 +8,6 @@ edition = "2018"
 users = "0.9"
 libc = "0.2"
 miniserde = { version = "0.1.12", optional = true }
-
 
 [features]
 default = ["bash-shell", "git-file-cache"]
