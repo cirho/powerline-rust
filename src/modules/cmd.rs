@@ -1,6 +1,7 @@
 use std::{env, marker::PhantomData};
 
-use crate::{part::*, powerline::*, terminal::Color, R};
+use super::Module;
+use crate::{powerline::Segment, terminal::Color, R};
 
 pub struct Cmd<S: CmdScheme> {
 	status: Option<bool>,
@@ -32,7 +33,7 @@ impl<S: CmdScheme> Cmd<S> {
 	}
 }
 
-impl<S: CmdScheme> Part for Cmd<S> {
+impl<S: CmdScheme> Module for Cmd<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let (fg, bg) = if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
 			(S::CMD_PASSED_FG, S::CMD_PASSED_BG)

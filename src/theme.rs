@@ -1,6 +1,4 @@
-use crate::{
-	segments::{cmd::CmdScheme, cwd::CwdScheme, git::GitScheme, host::HostScheme, readonly::ReadOnlyScheme, user::UserScheme}, terminal::Color
-};
+use crate::{modules::*, terminal::Color};
 
 #[derive(Copy, Clone)]
 pub struct SimpleTheme;

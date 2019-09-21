@@ -1,6 +1,7 @@
 use std::{ffi::CString, marker::PhantomData};
 
-use crate::{part::*, powerline::*, terminal::Color, R};
+use super::Module;
+use crate::{Segment, terminal::Color, R};
 
 pub struct ReadOnly<S>(PhantomData<S>);
 
@@ -15,7 +16,7 @@ impl<S: ReadOnlyScheme> ReadOnly<S> {
 	}
 }
 
-impl<S: ReadOnlyScheme> Part for ReadOnly<S> {
+impl<S: ReadOnlyScheme> Module for ReadOnly<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let readonly = unsafe {
 			let path = CString::new("./")?;

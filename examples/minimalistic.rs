@@ -1,14 +1,14 @@
 extern crate powerline;
 
-use powerline::{segments::*, theme::SimpleTheme};
+use powerline::{modules::*, theme::SimpleTheme};
 
 fn main() {
 	let mut prompt = powerline::Powerline::new();
 
-	prompt.add_part(cwd::Cwd::<SimpleTheme>::new(45, 4, false));
-	prompt.add_part(git::Git::<SimpleTheme>::new());
-	prompt.add_part(readonly::ReadOnly::<SimpleTheme>::new());
-	prompt.add_part(cmd::Cmd::<SimpleTheme>::new());
+	prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false));
+	prompt.add_module(Git::<SimpleTheme>::new());
+	prompt.add_module(ReadOnly::<SimpleTheme>::new());
+	prompt.add_module(Cmd::<SimpleTheme>::new());
 
 	println!("{}", prompt);
 }

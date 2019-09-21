@@ -1,6 +1,20 @@
 use crate::{error::Error, powerline::Segment};
 
-pub trait Part: Sized {
+mod cmd;
+mod cwd;
+mod git;
+mod host;
+mod readonly;
+mod user;
+
+pub use cmd::{Cmd, CmdScheme};
+pub use cwd::{Cwd, CwdScheme};
+pub use git::{Git, GitScheme};
+pub use host::{Host, HostScheme};
+pub use readonly::{ReadOnly, ReadOnlyScheme};
+pub use user::{User, UserScheme};
+
+pub trait Module: Sized {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> Result<(), Error>;
 	#[inline]
 	fn into_segments(mut self) -> Result<Vec<Segment>, Error> {

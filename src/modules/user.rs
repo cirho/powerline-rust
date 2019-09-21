@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::{part::*, powerline::*, terminal::Color, R};
+use super::Module;
+use crate::{Segment, terminal::Color, R};
 
 pub struct User<S: UserScheme>(PhantomData<S>);
 pub trait UserScheme {
@@ -15,7 +16,7 @@ impl<S: UserScheme> User<S> {
 	}
 }
 
-impl<S: UserScheme> Part for User<S> {
+impl<S: UserScheme> Module for User<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
 		let bg = if user.uid() == 0 { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };

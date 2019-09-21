@@ -2,7 +2,8 @@ use std::{
 	collections::HashMap, env, marker::PhantomData, path, path::{Path, PathBuf}, time::SystemTime
 };
 
-use crate::{part::*, powerline::*, segments::git::internal::run_git, terminal::Color, Error, R};
+use super::Module;
+use crate::{Segment, terminal::Color, Error, R};
 
 mod internal;
 
@@ -12,8 +13,9 @@ pub struct Git<S> {
 	file_path: Option<PathBuf>,
 	scheme: PhantomData<S>,
 }
-#[cfg(feature = "git-file-cache")]
-#[derive(miniserde::Deserialize, miniserde::Serialize, Clone)]
+
+#[cfg_attr(feature = "git-file-cache", derive(miniserde::Deserialize, miniserde::Serialize))]
+#[derive(Clone)]
 pub struct GitStats {
 	pub untracked: u32,
 	pub conflicted: u32,
@@ -52,6 +54,7 @@ impl<S: GitScheme> Git<S> {
 	pub fn with_file_cache<P: AsRef<Path>>(path: P) -> R<Git<S>> {
 		Ok(Git {
 			cache: None,
+			#[cfg(feature = "git-file-cache")]
 			file_path: Some(path.as_ref().to_path_buf()),
 			scheme: PhantomData,
 		})
@@ -60,15 +63,18 @@ impl<S: GitScheme> Git<S> {
 	pub fn with_memory_cache() -> Git<S> {
 		Git {
 			cache: Some(HashMap::new()),
+			#[cfg(feature = "git-file-cache")]
 			file_path: None,
 			scheme: PhantomData,
 		}
 	}
 
-	fn cache_mut(&mut self) -> R<Option<&mut HashMap<String, (GitStats, u64)>>> {
-		match (&self.cache, &self.file_path) {
-			(Some(_), _) => Ok(self.cache.as_mut()),
-			(None, Some(ref path)) => {
+	fn lazy_cache_mut(&mut self) -> R<Option<&mut HashMap<String, (GitStats, u64)>>> {
+		match &self.cache {
+			Some(_) => Ok(self.cache.as_mut()),
+			#[cfg(feature = "git-file-cache")]
+			None if self.file_path.is_some() => {
+				let path = self.file_path.as_ref().unwrap();
 				self.cache = Some(if path.exists() {
 					miniserde::json::from_str(&std::fs::read_to_string(path)?)?
 				} else {
@@ -81,7 +87,7 @@ impl<S: GitScheme> Git<S> {
 	}
 
 	pub fn get_git_data(&mut self, path: PathBuf) -> R<GitStats> {
-		if let Some(ref mut cache) = self.cache_mut()? {
+		if let Some(ref mut cache) = self.lazy_cache_mut()? {
 			let to_seconds = |time: SystemTime| time.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 
 			if let Some((cached_stats, cached_time)) = cache.get_mut(path.to_str().unwrap()) {
@@ -92,13 +98,13 @@ impl<S: GitScheme> Git<S> {
 				}
 				Ok(cached_stats.clone())
 			} else {
-				let curr_stats = run_git()?;
+				let curr_stats = internal::run_git()?;
 				let curr_time = to_seconds(path.metadata()?.modified()?);
 				cache.insert(path.clone().into_os_string().into_string().unwrap(), (curr_stats.clone(), curr_time));
 				Ok(curr_stats)
 			}
 		} else {
-			run_git()
+			internal::run_git()
 		}
 	}
 }
@@ -138,7 +144,7 @@ fn find_git_dir() -> Option<path::PathBuf> {
 	}
 }
 
-impl<S: GitScheme> Part for Git<S> {
+impl<S: GitScheme> Module for Git<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let git_dir = match find_git_dir() {
 			Some(dir) => dir,

@@ -1,6 +1,7 @@
 use std::{env, marker::PhantomData, path};
 
-use crate::{part::*, powerline::*, terminal::Color, R};
+use super::Module;
+use crate::{Segment, terminal::Color, R};
 
 pub struct Cwd<S: CwdScheme> {
 	max_length: usize,
@@ -38,7 +39,7 @@ macro_rules! append_cwd_segments {
 	};
 }
 
-impl<S: CwdScheme> Part for Cwd<S> {
+impl<S: CwdScheme> Module for Cwd<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let current_dir = if self.resolve_symlinks {
 			env::current_dir()?

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{part::Part, terminal::*};
+use crate::{modules::Module, terminal::*, R};
 
 #[derive(Clone)]
 pub struct Segment {
@@ -42,8 +42,8 @@ impl Powerline {
 		Powerline { segments: Vec::new() }
 	}
 
-	pub fn add_part(&mut self, mut part: impl Part) {
-		part.append_segments(&mut self.segments).expect("part failed")
+	pub fn add_module(&mut self, mut part: impl Module) -> R<()> {
+		part.append_segments(&mut self.segments)
 	}
 
 	pub fn add_segments(&mut self, new_segments: Vec<Segment>) {

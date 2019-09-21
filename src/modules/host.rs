@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::{part::*, powerline::*, terminal::Color, R};
+use super::Module;
+use crate::{Segment, terminal::Color, R};
 
 pub struct Host<S: HostScheme>(PhantomData<S>);
 
@@ -14,7 +15,7 @@ impl<S: HostScheme> Host<S> {
 	}
 }
 
-impl<S: HostScheme> Part for Host<S> {
+impl<S: HostScheme> Module for Host<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		segments.push(Segment::simple(" \\h ", S::HOSTNAME_FG, S::HOSTNAME_BG));
 		Ok(())
