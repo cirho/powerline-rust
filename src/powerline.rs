@@ -42,8 +42,8 @@ impl Powerline {
 		Powerline { segments: Vec::new() }
 	}
 
-	pub fn add_part(&mut self, part: impl Part) {
-		part.append_segments(&mut self.segments);
+	pub fn add_part(&mut self, mut part: impl Part) {
+		part.append_segments(&mut self.segments).expect("part failed")
 	}
 
 	pub fn add_segments(&mut self, new_segments: Vec<Segment>) {

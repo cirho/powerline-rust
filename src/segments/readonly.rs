@@ -16,7 +16,7 @@ impl<S: ReadOnlyScheme> ReadOnly<S> {
 }
 
 impl<S: ReadOnlyScheme> Part for ReadOnly<S> {
-	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
+	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let readonly = unsafe {
 			let path = CString::new("./")?;
 			libc::access(path.as_ptr(), libc::W_OK) != 0

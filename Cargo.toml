@@ -7,12 +7,14 @@ edition = "2018"
 [dependencies]
 users = "0.9"
 libc = "0.2"
+miniserde = { version = "0.1.12", optional = true }
 
 
 [features]
-default = ["bash-shell"]
+default = ["bash-shell", "git-file-cache"]
 bash-shell = []
 bare-shell = []
+git-file-cache = ["miniserde"]
 
 [profile.release]
 opt-level = 3

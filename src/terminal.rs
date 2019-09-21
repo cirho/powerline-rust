@@ -47,7 +47,7 @@ impl std::fmt::Display for BgColor {
 impl std::fmt::Display for FgColor {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		#[cfg(feature = "bash-shell")]
-		return write!(f, r#"\[\e[48;5;{}m\]"#, self.0);
+		return write!(f, r#"\[\e[38;5;{}m\]"#, self.0);
 		#[cfg(feature = "bare-shell")]
 		return write!(f, "\x1b[38;5;{}m", self.0);
 	}

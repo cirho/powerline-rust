@@ -39,7 +39,7 @@ macro_rules! append_cwd_segments {
 }
 
 impl<S: CwdScheme> Part for Cwd<S> {
-	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
+	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let current_dir = if self.resolve_symlinks {
 			env::current_dir()?
 		} else {
@@ -71,6 +71,7 @@ impl<S: CwdScheme> Part for Cwd<S> {
 			append_cwd_segments!(segments, cwd.split('/').skip(1));
 		};
 
+		// todo get rid of me
 		if let Some(last) = segments.last_mut() {
 			if &last.val == "  " {
 				last.val = " / ".to_string()

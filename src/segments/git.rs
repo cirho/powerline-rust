@@ -1,16 +1,27 @@
-use std::{env, marker::PhantomData, path::PathBuf, process::Command, str};
+use std::{
+	collections::HashMap, env, marker::PhantomData, path, path::{Path, PathBuf}, time::SystemTime
+};
 
-use crate::{part::*, powerline::*, terminal::Color, Error, R};
+use crate::{part::*, powerline::*, segments::git::internal::run_git, terminal::Color, Error, R};
 
-pub struct GitInfo<S: GitScheme>(PhantomData<S>);
+mod internal;
 
-pub struct GitData {
-	untracked: u32,
-	conflicted: u32,
-	non_staged: u32,
-	ahead: u32,
-	behind: u32,
-	staged: u32,
+pub struct Git<S> {
+	cache: Option<HashMap<String, (GitStats, u64)>>,
+	#[cfg(feature = "git-file-cache")]
+	file_path: Option<PathBuf>,
+	scheme: PhantomData<S>,
+}
+#[cfg(feature = "git-file-cache")]
+#[derive(miniserde::Deserialize, miniserde::Serialize, Clone)]
+pub struct GitStats {
+	pub untracked: u32,
+	pub conflicted: u32,
+	pub non_staged: u32,
+	pub ahead: u32,
+	pub behind: u32,
+	pub staged: u32,
+	pub branch_name: String,
 }
 
 pub trait GitScheme {
@@ -26,198 +37,145 @@ pub trait GitScheme {
 	const GIT_UNTRACKED_FG: Color;
 	const GIT_CONFLICTED_BG: Color;
 	const GIT_CONFLICTED_FG: Color;
-	const REPO_CLEAN_BG: Color;
-	const REPO_CLEAN_FG: Color;
-	const REPO_DIRTY_BG: Color;
-	const REPO_DIRTY_FG: Color;
+	const GIT_REPO_CLEAN_BG: Color;
+	const GIT_REPO_CLEAN_FG: Color;
+	const GIT_REPO_DIRTY_BG: Color;
+	const GIT_REPO_DIRTY_FG: Color;
 }
 
-impl<S: GitScheme> GitInfo<S> {
-	pub fn new() -> GitInfo<S> {
-		GitInfo(PhantomData)
+impl<S: GitScheme> Git<S> {
+	pub fn new() -> Git<S> {
+		Git::with_memory_cache()
 	}
-}
 
-impl GitData {
-	fn new() -> GitData {
-		GitData {
-			untracked: 0,
-			conflicted: 0,
-			non_staged: 0,
-			staged: 0,
-			ahead: 0,
-			behind: 0,
+	#[cfg(feature = "git-file-cache")]
+	pub fn with_file_cache<P: AsRef<Path>>(path: P) -> R<Git<S>> {
+		Ok(Git {
+			cache: None,
+			file_path: Some(path.as_ref().to_path_buf()),
+			scheme: PhantomData,
+		})
+	}
+
+	pub fn with_memory_cache() -> Git<S> {
+		Git {
+			cache: Some(HashMap::new()),
+			file_path: None,
+			scheme: PhantomData,
 		}
 	}
 
-	fn is_dirty(&self) -> bool {
-		(self.untracked + self.conflicted + self.staged + self.non_staged) > 0
-	}
-
-	fn add_file(&mut self, begin: &str) {
-		match begin {
-			"??" => self.untracked += 1,
-			"DD" => self.conflicted += 1,
-			"AU" => self.conflicted += 1,
-			"UD" => self.conflicted += 1,
-			"UA" => self.conflicted += 1,
-			"UU" => self.conflicted += 1,
-			"DU" => self.conflicted += 1,
-			"AA" => self.conflicted += 1,
-			_ => {
-				let mut chars = begin.chars();
-				let a = chars.next().expect("invalid file status");
-				let b = chars.next().expect("invalid file status");
-				if b != ' ' {
-					self.non_staged += 1;
-				}
-				if a != ' ' {
-					self.staged += 1;
-				}
+	fn cache_mut(&mut self) -> R<Option<&mut HashMap<String, (GitStats, u64)>>> {
+		match (&self.cache, &self.file_path) {
+			(Some(_), _) => Ok(self.cache.as_mut()),
+			(None, Some(ref path)) => {
+				self.cache = Some(if path.exists() {
+					miniserde::json::from_str(&std::fs::read_to_string(path)?)?
+				} else {
+					HashMap::new()
+				});
+				Ok(self.cache.as_mut())
 			},
-		};
+			_ => Ok(None),
+		}
 	}
-}
 
-fn get_detached_branch_name() -> Result<String, Error> {
-	let child = Command::new("git")
-		.args(&["describe", "--tags", "--always"])
-		.output()
-		.map_err(|e| Error::wrap(e, "Failed to run git"))?;
-	Ok(if child.status.success() {
-		let branch = str::from_utf8(&child.stdout)?.split('\n').next().ok_or_else(|| Error::from_str("Empty git output"))?;
-		format!("\u{2693}{}", branch)
-	} else {
-		String::from("Big Bang")
-	})
-}
+	pub fn get_git_data(&mut self, path: PathBuf) -> R<GitStats> {
+		if let Some(ref mut cache) = self.cache_mut()? {
+			let to_seconds = |time: SystemTime| time.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 
-fn quantity(val: u32) -> String {
-	if val > 1 {
-		format!("{}", val)
-	} else {
-		String::new()
-	}
-}
-
-fn get_first_number(s: &str) -> u32 {
-	s.chars().take_while(|x| x.is_digit(10)).flat_map(|x| x.to_digit(10)).fold(0, |acc, x| 10 * acc + x)
-}
-
-fn get_ahead_commits(s: &str) -> Option<u32> {
-	s.find("ahead").map(|pos| {
-		let start = pos + 6;
-		let rest = s.get(start..).unwrap();
-		get_first_number(rest)
-	})
-}
-
-fn get_behind_commits(s: &str) -> Option<u32> {
-	s.find("behind").map(|pos| {
-		let start = pos + 7;
-		let rest = s.get(start..).unwrap();
-		get_first_number(rest)
-	})
-}
-
-fn get_branch_name(s: &str) -> Option<&str> {
-	if let Some(rest) = s.get(3..) {
-		let mut end: usize = 0;
-		if let Some(pos) = rest.find("...") {
-			end = pos
-		} else {
-			let mut text = rest.chars();
-			while let Some(c) = text.next() {
-				end += 1;
-				if c.is_whitespace() {
-					if Some('[') != text.next() {
-						return None;
-					}
-					break;
+			if let Some((cached_stats, cached_time)) = cache.get_mut(path.to_str().unwrap()) {
+				let modify_time = to_seconds(path.metadata()?.modified()?);
+				if *cached_time < modify_time {
+					*cached_stats = internal::run_git()?;
+					*cached_time = to_seconds(path.metadata()?.modified()?);
 				}
+				Ok(cached_stats.clone())
+			} else {
+				let curr_stats = run_git()?;
+				let curr_time = to_seconds(path.metadata()?.modified()?);
+				cache.insert(path.clone().into_os_string().into_string().unwrap(), (curr_stats.clone(), curr_time));
+				Ok(curr_stats)
+			}
+		} else {
+			run_git()
+		}
+	}
+}
+
+#[cfg(feature = "git-file-cache")]
+impl<S> Drop for Git<S> {
+	fn drop(&mut self) {
+		if let Some(file_path) = self.file_path.take() {
+			if let Some(cache) = self.cache.take() {
+				#[cfg(feature = "git-file-cache")]
+				std::fs::write(file_path, miniserde::json::to_string(&cache)).expect("failed writing git cache");
 			}
 		}
-		rest.get(..end)
-	} else {
-		None
 	}
 }
 
-fn git_dir_exists() -> Option<PathBuf> {
-	let mut git_dir = env::current_dir().unwrap();
+impl GitStats {
+	pub fn is_dirty(&self) -> bool {
+		(self.untracked + self.conflicted + self.staged + self.non_staged) > 0
+	}
+}
 
+fn find_git_dir() -> Option<path::PathBuf> {
+	let mut git_dir = env::current_dir().unwrap();
 	loop {
 		git_dir.push(".git/");
 
 		if git_dir.exists() {
+			git_dir.pop();
 			return Some(git_dir);
 		}
-
 		git_dir.pop();
+
 		if !git_dir.pop() {
 			return None;
 		}
 	}
 }
 
-impl<S: GitScheme> Part for GitInfo<S> {
-	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
-		if git_dir_exists().is_none() {
-			return Ok(());
-		}
-
-		let output = Command::new("git")
-			.args(&["status", "--porcelain", "-b"])
-			.output()
-			.map_err(|e| Error::wrap(e, "Failed to run git"))?
-			.stdout;
-
-		if output.is_empty() {
-			return Ok(());
-		}
-
-		let mut lines = output.split(|x| *x == (b'\n'));
-
-		let branch_line = str::from_utf8(lines.next().ok_or_else(|| Error::from_str("Empty git output"))?)?;
-		let mut stats = GitData::new();
-		let branch_name = {
-			if let Some(branch_name) = get_branch_name(&branch_line) {
-				if let Some(pos) = branch_line.find('[') {
-					let info = branch_line.get(pos..).unwrap();
-					stats.ahead += get_ahead_commits(&info).unwrap_or(0);
-					stats.behind += get_behind_commits(&info).unwrap_or(0);
-				}
-				String::from(branch_name)
-			} else {
-				get_detached_branch_name()?
-			}
+impl<S: GitScheme> Part for Git<S> {
+	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
+		let git_dir = match find_git_dir() {
+			Some(dir) => dir,
+			_ => return Ok(()),
 		};
 
-		for op in lines.flat_map(|line| line.get(..2)) {
-			stats.add_file(str::from_utf8(op)?);
-		}
+		let stats = self.get_git_data(git_dir)?;
 
 		let (branch_fg, branch_bg) = if stats.is_dirty() {
-			(S::REPO_DIRTY_FG, S::REPO_DIRTY_BG)
+			(S::GIT_REPO_DIRTY_FG, S::GIT_REPO_DIRTY_BG)
 		} else {
-			(S::REPO_CLEAN_FG, S::REPO_CLEAN_BG)
+			(S::GIT_REPO_CLEAN_FG, S::GIT_REPO_CLEAN_BG)
 		};
 
-		segments.push(Segment::simple(&format!(" {} ", branch_name), branch_fg, branch_bg));
-		{
-			let mut add_elem = |count, symbol, fg, bg| {
-				if count > 0 {
-					let text = format!(" {}{} ", quantity(count), symbol);
-					segments.push(Segment::simple(&text, fg, bg));
+		segments.push(Segment::simple(&format!(" {} ", stats.branch_name), branch_fg, branch_bg));
+
+		let mut add_elem = |count, symbol, fg, bg| {
+			let quantity = |val: u32| -> String {
+				if val > 1 {
+					format!("{}", val)
+				} else {
+					String::new()
 				}
 			};
-			add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);
-			add_elem(stats.behind, '\u{2B07}', S::GIT_BEHIND_FG, S::GIT_BEHIND_BG);
-			add_elem(stats.staged, '\u{2714}', S::GIT_STAGED_FG, S::GIT_STAGED_BG);
-			add_elem(stats.non_staged, '\u{270E}', S::GIT_NOTSTAGED_FG, S::GIT_NOTSTAGED_BG);
-			add_elem(stats.untracked, '\u{2753}', S::GIT_UNTRACKED_FG, S::GIT_UNTRACKED_BG);
-			add_elem(stats.conflicted, '\u{273C}', S::GIT_CONFLICTED_FG, S::GIT_CONFLICTED_BG);
-		}
+
+			if count > 0 {
+				let text = format!(" {}{} ", quantity(count), symbol);
+				segments.push(Segment::simple(&text, fg, bg));
+			}
+		};
+		add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);
+		add_elem(stats.behind, '\u{2B07}', S::GIT_BEHIND_FG, S::GIT_BEHIND_BG);
+		add_elem(stats.staged, '\u{2714}', S::GIT_STAGED_FG, S::GIT_STAGED_BG);
+		add_elem(stats.non_staged, '\u{270E}', S::GIT_NOTSTAGED_FG, S::GIT_NOTSTAGED_BG);
+		add_elem(stats.untracked, '\u{2753}', S::GIT_UNTRACKED_FG, S::GIT_UNTRACKED_BG);
+		add_elem(stats.conflicted, '\u{273C}', S::GIT_CONFLICTED_FG, S::GIT_CONFLICTED_BG);
+
 		Ok(())
 	}
 }

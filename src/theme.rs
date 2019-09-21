@@ -46,12 +46,12 @@ impl GitScheme for SimpleTheme {
 	const GIT_CONFLICTED_FG: Color = Color(15);
 	const GIT_NOTSTAGED_BG: Color = Color(130);
 	const GIT_NOTSTAGED_FG: Color = Color(15);
+	const GIT_REPO_CLEAN_BG: Color = Color(148);
+	const GIT_REPO_CLEAN_FG: Color = Color(0);
+	const GIT_REPO_DIRTY_BG: Color = Color(161);
+	const GIT_REPO_DIRTY_FG: Color = Color(15);
 	const GIT_STAGED_BG: Color = Color(22);
 	const GIT_STAGED_FG: Color = Color(15);
 	const GIT_UNTRACKED_BG: Color = Color(52);
 	const GIT_UNTRACKED_FG: Color = Color(15);
-	const REPO_CLEAN_BG: Color = Color(148);
-	const REPO_CLEAN_FG: Color = Color(0);
-	const REPO_DIRTY_BG: Color = Color(161);
-	const REPO_DIRTY_FG: Color = Color(15);
 }

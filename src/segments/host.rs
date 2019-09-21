@@ -15,7 +15,7 @@ impl<S: HostScheme> Host<S> {
 }
 
 impl<S: HostScheme> Part for Host<S> {
-	fn append_segments(&self, segments: &mut Vec<Segment>) -> R<()> {
+	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		segments.push(Segment::simple(" \\h ", S::HOSTNAME_FG, S::HOSTNAME_BG));
 		Ok(())
 	}
