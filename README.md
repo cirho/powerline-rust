@@ -11,7 +11,7 @@ There is a demand to recompile every time while customizing, but you change your
 
 ## Advantages 
 - blazing fast (less than 0.010s)
-- only necessary dependencies  ([users](https://crates.io/crates/users) crate)
+- only necessary dependencies
 - runs git backend only when needed (huge time improvements in directories not in git tree)
 - optional caching git results in memory or file
 

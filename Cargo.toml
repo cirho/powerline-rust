@@ -8,6 +8,7 @@ edition = "2018"
 users = "0.9"
 libc = "0.2"
 miniserde = { version = "0.1.12", optional = true }
+hostname = "0.1.5"
 
 [features]
 default = ["bash-shell", "git-file-cache"]
