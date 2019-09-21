@@ -24,7 +24,7 @@ impl<S: ReadOnlyScheme> Module for ReadOnly<S> {
 		};
 
 		if readonly {
-			segments.push(Segment::simple(&format!(" {} ", S::READONLY_SYMBOL), S::READONLY_FG, S::READONLY_BG));
+			segments.push(Segment::simple(format!(" {} ", S::READONLY_SYMBOL), S::READONLY_FG, S::READONLY_BG));
 		}
 		Ok(())
 	}

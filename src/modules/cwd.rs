@@ -34,7 +34,7 @@ impl<S: CwdScheme> Cwd<S> {
 macro_rules! append_cwd_segments {
 	($segments: ident, $iter: expr) => {
 		for val in $iter {
-			$segments.push(Segment::special(&format!(" {} ", val), S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
+			$segments.push(Segment::special(format!(" {} ", val), S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
 			}
 	};
 }

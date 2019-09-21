@@ -21,7 +21,7 @@ impl<S: UserScheme> Module for User<S> {
 		let user = users::get_user_by_uid(users::get_current_uid()).unwrap();
 		let bg = if user.uid() == 0 { S::USERNAME_ROOT_BG } else { S::USERNAME_BG };
 
-		segments.push(Segment::simple(&format!(" {} ", user.name().to_str().unwrap()), S::USERNAME_FG, bg));
+		segments.push(Segment::simple(format!(" {} ", user.name().to_str().unwrap()), S::USERNAME_FG, bg));
 		Ok(())
 	}
 }
