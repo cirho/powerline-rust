@@ -45,8 +45,6 @@ precmd_functions+=(_update_ps1)
 ## Custom shell prompt
 Simply create new rust program that fulfils your requirements.
 ```rust
-extern crate powerline;
-
 use powerline::{modules::*, theme::SimpleTheme};
 
 fn main() {
@@ -74,8 +72,8 @@ strip powerline
 ```
 ### Use LTO and other
 
-```rust
-// Cargo.toml
+```toml
+# Cargo.toml
 [profile.release]
 lto = true
 panic = 'abort'
@@ -84,8 +82,6 @@ panic = 'abort'
 ### Custom theme
 
 ```rust
-extern crate powerline;
-
 use powerline::{modules::*, terminal::Color};
 
 struct Theme;

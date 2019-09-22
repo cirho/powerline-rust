@@ -7,15 +7,13 @@ edition = "2018"
 [dependencies]
 users = "0.9"
 libc = "0.2"
-miniserde = { version = "0.1.12", optional = true }
 hostname = "0.1.5"
 
 [features]
-default = ["zsh-shell", "git-file-cache"]
+default = ["bare-shell"]
 bash-shell = []
 bare-shell = []
 zsh-shell = []
-git-file-cache = ["miniserde"]
 
 [profile.release]
 opt-level = 3

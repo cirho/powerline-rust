@@ -3,18 +3,14 @@ use std::{
 };
 
 use super::Module;
-use crate::{Segment, terminal::Color, Error, R};
+use crate::{terminal::Color, utils::recursive_modify_time, Error, Segment, R};
 
 mod internal;
 
 pub struct Git<S> {
-	cache: Option<HashMap<String, (GitStats, u64)>>,
-	#[cfg(feature = "git-file-cache")]
-	file_path: Option<PathBuf>,
 	scheme: PhantomData<S>,
 }
 
-#[cfg_attr(feature = "git-file-cache", derive(miniserde::Deserialize, miniserde::Serialize))]
 #[derive(Clone)]
 pub struct GitStats {
 	pub untracked: u32,
@@ -47,77 +43,11 @@ pub trait GitScheme {
 
 impl<S: GitScheme> Git<S> {
 	pub fn new() -> Git<S> {
-		Git::with_memory_cache()
-	}
-
-	#[cfg(feature = "git-file-cache")]
-	pub fn with_file_cache<P: AsRef<Path>>(path: P) -> R<Git<S>> {
-		Ok(Git {
-			cache: None,
-			#[cfg(feature = "git-file-cache")]
-			file_path: Some(path.as_ref().to_path_buf()),
-			scheme: PhantomData,
-		})
-	}
-
-	pub fn with_memory_cache() -> Git<S> {
-		Git {
-			cache: Some(HashMap::new()),
-			#[cfg(feature = "git-file-cache")]
-			file_path: None,
-			scheme: PhantomData,
-		}
-	}
-
-	fn lazy_cache_mut(&mut self) -> R<Option<&mut HashMap<String, (GitStats, u64)>>> {
-		match &self.cache {
-			Some(_) => Ok(self.cache.as_mut()),
-			#[cfg(feature = "git-file-cache")]
-			None if self.file_path.is_some() => {
-				let path = self.file_path.as_ref().unwrap();
-				self.cache = Some(if path.exists() {
-					miniserde::json::from_str(&std::fs::read_to_string(path)?)?
-				} else {
-					HashMap::new()
-				});
-				Ok(self.cache.as_mut())
-			},
-			_ => Ok(None),
-		}
+		Git { scheme: PhantomData }
 	}
 
 	pub fn get_git_data(&mut self, path: PathBuf) -> R<GitStats> {
-		if let Some(ref mut cache) = self.lazy_cache_mut()? {
-			let to_seconds = |time: SystemTime| time.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
-
-			if let Some((cached_stats, cached_time)) = cache.get_mut(path.to_str().unwrap()) {
-				let modify_time = to_seconds(path.metadata()?.modified()?);
-				if *cached_time < modify_time {
-					*cached_stats = internal::run_git()?;
-					*cached_time = to_seconds(path.metadata()?.modified()?);
-				}
-				Ok(cached_stats.clone())
-			} else {
-				let curr_stats = internal::run_git()?;
-				let curr_time = to_seconds(path.metadata()?.modified()?);
-				cache.insert(path.clone().into_os_string().into_string().unwrap(), (curr_stats.clone(), curr_time));
-				Ok(curr_stats)
-			}
-		} else {
-			internal::run_git()
-		}
-	}
-}
-
-#[cfg(feature = "git-file-cache")]
-impl<S> Drop for Git<S> {
-	fn drop(&mut self) {
-		if let Some(file_path) = self.file_path.take() {
-			if let Some(cache) = self.cache.take() {
-				#[cfg(feature = "git-file-cache")]
-				std::fs::write(file_path, miniserde::json::to_string(&cache)).expect("failed writing git cache");
-			}
-		}
+		internal::run_git()
 	}
 }
 

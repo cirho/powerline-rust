@@ -1,7 +1,7 @@
 use std::{ffi::CString, marker::PhantomData};
 
 use super::Module;
-use crate::{Segment, terminal::Color, R};
+use crate::{terminal::Color, Segment, R};
 
 pub struct ReadOnly<S>(PhantomData<S>);
 

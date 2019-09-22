@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use super::Module;
-use crate::{Segment, terminal::Color, R};
+use crate::{terminal::Color, Segment, R};
 
 pub struct User<S: UserScheme>(PhantomData<S>);
 pub trait UserScheme {
