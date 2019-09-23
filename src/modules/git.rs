@@ -1,9 +1,7 @@
-use std::{
-	collections::HashMap, env, marker::PhantomData, path, path::{Path, PathBuf}, time::SystemTime
-};
+use std::{env, marker::PhantomData, path, path::PathBuf};
 
 use super::Module;
-use crate::{terminal::Color, utils::recursive_modify_time, Error, Segment, R};
+use crate::{terminal::Color, Error, Segment, R};
 
 mod internal;
 
