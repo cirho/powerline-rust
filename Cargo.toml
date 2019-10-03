@@ -8,12 +8,14 @@ edition = "2018"
 users = "0.9"
 libc = "0.2"
 hostname = "0.1.5"
+git2 = { version = "0.10", optional = true, default-features = false}
 
 [features]
-default = ["bare-shell"]
+default = ["bare-shell", "libgit"]
 bash-shell = []
 bare-shell = []
 zsh-shell = []
+libgit = ["git2"]
 
 [profile.release]
 opt-level = 3

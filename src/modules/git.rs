@@ -1,9 +1,17 @@
 use std::{env, marker::PhantomData, path, path::PathBuf};
 
 use super::Module;
-use crate::{terminal::Color, Error, Segment, R};
+use crate::{terminal::Color, Segment, R};
 
-mod internal;
+#[cfg(not(feature = "libgit"))]
+mod process;
+#[cfg(not(feature = "libgit"))]
+use process as internal;
+
+#[cfg(feature = "libgit")]
+mod libgit;
+#[cfg(feature = "libgit")]
+use libgit as internal;
 
 pub struct Git<S> {
 	scheme: PhantomData<S>,
@@ -45,7 +53,7 @@ impl<S: GitScheme> Git<S> {
 	}
 
 	pub fn get_git_data(&mut self, path: PathBuf) -> R<GitStats> {
-		internal::run_git()
+		internal::run_git(&path)
 	}
 }
 
