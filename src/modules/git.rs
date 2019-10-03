@@ -98,12 +98,10 @@ impl<S: GitScheme> Module for Git<S> {
 		segments.push(Segment::simple(format!(" {} ", stats.branch_name), branch_fg, branch_bg));
 
 		let mut add_elem = |count, symbol, fg, bg| {
-			if count > 0 {
-				if quantity > 1 {
-					segments.push(Segment::simple(format!(" {}{} ", quantity, symbol), fg, bg));
-				} else {
-					segments.push(Segment::simple(format!(" {} ", symbolf), fg, bg));
-				}
+			if count > 1 {
+				segments.push(Segment::simple(format!(" {}{} ", count, symbol), fg, bg));
+			} else if count == 1 {
+				segments.push(Segment::simple(format!(" {} ", symbol), fg, bg));
 			}
 		};
 		add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);

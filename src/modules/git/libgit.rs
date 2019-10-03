@@ -17,7 +17,7 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 	let (mut untracked, mut non_staged, mut conflicted, mut staged, mut ahead, mut behind) = (0, 0, 0, 0, 0, 0);
 
 	for status in repository.statuses(Some(&mut status_options))?.iter().map(|ref x| x.status()) {
-		if status.intersects(Status::INDEX_NEW | Status::INDEX_MODIFIED | Status::INDEX_RENAMED | Status::INDEX_DELETED) {
+		if status.intersects(Status::INDEX_NEW | Status::INDEX_MODIFIED | Status::INDEX_TYPECHANGE | Status::INDEX_RENAMED | Status::INDEX_DELETED) {
 			staged += 1;
 		}
 		if status.is_wt_new() {

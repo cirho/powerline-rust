@@ -1,5 +1,3 @@
-extern crate powerline;
-
 use powerline::{modules::*, theme::SimpleTheme};
 
 fn main() {
