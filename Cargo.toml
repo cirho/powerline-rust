@@ -11,7 +11,7 @@ hostname = "0.1.5"
 git2 = { version = "0.10", optional = true, default-features = false}
 
 [features]
-default = ["bare-shell", "libgit"]
+default = ["bash-shell", "libgit"]
 bash-shell = []
 bare-shell = []
 zsh-shell = []

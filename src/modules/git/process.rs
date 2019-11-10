@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 use crate::{Error, R};
 
@@ -52,7 +52,7 @@ pub fn get_detached_branch_name() -> R<String> {
 	})
 }
 
-pub fn run_git() -> R<super::GitStats> {
+pub fn run_git(_: &Path) -> R<super::GitStats> {
 	let output = Command::new("git")
 		.args(&["status", "--porcelain", "-b"])
 		.output()

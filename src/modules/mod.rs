@@ -20,6 +20,7 @@ pub trait Module: Sized {
 	fn into_segments(mut self) -> Result<Vec<Segment>, Error> {
 		self.get_segments()
 	}
+
 	#[inline]
 	fn get_segments(&mut self) -> Result<Vec<Segment>, Error> {
 		let mut vec = Vec::new();
