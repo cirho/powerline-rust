@@ -37,7 +37,7 @@ fi
 You must also compile with `zsh-shell` feature.
 ```zsh
 _update_ps1() {
-    PS1="$(powerline $0)"
+    PS1="$(powerline $?)"
 }
 precmd_functions+=(_update_ps1)
 ```
