@@ -9,6 +9,7 @@ users = "0.9"
 libc = "0.2"
 hostname = "0.1.5"
 git2 = { version = "0.10", optional = true, default-features = false}
+dirs = ">0"
 
 [features]
 default = ["bash-shell", "libgit"]

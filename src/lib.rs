@@ -1,6 +1,3 @@
-#![feature(test)]
-extern crate test;
-
 mod error;
 pub mod modules;
 pub mod powerline;
