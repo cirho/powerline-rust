@@ -19,13 +19,11 @@ impl CwdScheme for SimpleTheme {
 	const SEPARATOR_FG: Color = Color(244);
 }
 
-/*
 impl NewLineScheme for SimpleTheme {
-	const USERNAME_BG: Color = Color(240);
-	const USERNAME_FG: Color = Color(250);
-	const USERNAME_ROOT_BG: Color = Color(124);
+	const NEWLINE_BG: Color = Color(0);
+	const NEWLINE_FG: Color = Color(0);
+	const NEWLINE_ROOT_BG: Color = Color(0);
 }
-*/
 
 impl UserScheme for SimpleTheme {
 	const USERNAME_BG: Color = Color(240);
