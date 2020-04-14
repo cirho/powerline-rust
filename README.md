@@ -9,6 +9,7 @@ Although, similar results **can be archived** by **customization**.
 
 There is a demand to recompile every time while customizing, but you change your prompt only once upon a time. I think performance beneficence is worth it.
 
+With default settings `powerline-rust` uses `libgit` for git prompt. Unfortunately results vary from system to system so if you want every last bit of a performance you can try disabling this feature and benchmarking.
 ## Advantages 
 - blazing fast (less than 0.010s)
 - only necessary dependencies
@@ -19,11 +20,18 @@ There is a demand to recompile every time while customizing, but you change your
 ```bash
 git clone https://github.com/Xeoeen/powerline-rust
 cd powerline-rust
-cargo +nightly install --path .
+cargo install --path .
 ```
+You can also install one of examples for different look.
+```bash
+git clone https://github.com/Xeoeen/powerline-rust
+cd powerline-rust
+cargo install --path . --example minimalistic
+```
+
 ## Setting up shell
 #### Make sure you have executable in `$PATH`
-### Bash
+### bash
 ```bash
 function _update_ps1() {
     PS1="$(powerline $?)"
@@ -33,13 +41,20 @@ if [ "$TERM" != "linux" ]; then
     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
 ```
-### ZSH
+### zsh
 You must also compile with `zsh-shell` feature.
 ```zsh
 _update_ps1() {
     PS1="$(powerline $?)"
 }
 precmd_functions+=(_update_ps1)
+```
+### fish
+You must also compile with `bare-shell` feature.
+```bash
+function fish_prompt
+    powerline $status
+end
 ```
 
 ## Custom shell prompt
