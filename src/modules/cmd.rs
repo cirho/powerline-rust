@@ -19,17 +19,11 @@ pub trait CmdScheme {
 
 impl<S: CmdScheme> Cmd<S> {
 	pub fn new() -> Cmd<S> {
-		Cmd {
-			status: None,
-			scheme: PhantomData,
-		}
+		Cmd { status: None, scheme: PhantomData }
 	}
 
 	pub fn with_status(status: bool) -> Cmd<S> {
-		Cmd {
-			status: Some(status),
-			scheme: PhantomData,
-		}
+		Cmd { status: Some(status), scheme: PhantomData }
 	}
 }
 
@@ -40,9 +34,11 @@ impl<S: CmdScheme> Module for Cmd<S> {
 		} else {
 			(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
 		};
+
 		let is_root = users::get_current_uid() == 0;
 		let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
 		segments.push(Segment::simple(format!(" {} ", special), fg, bg));
+
 		Ok(())
 	}
 }

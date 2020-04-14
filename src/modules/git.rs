@@ -104,6 +104,7 @@ impl<S: GitScheme> Module for Git<S> {
 				segments.push(Segment::simple(format!(" {} ", symbol), fg, bg));
 			}
 		};
+
 		add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);
 		add_elem(stats.behind, '\u{2B07}', S::GIT_BEHIND_FG, S::GIT_BEHIND_BG);
 		add_elem(stats.staged, '\u{2714}', S::GIT_STAGED_FG, S::GIT_STAGED_BG);

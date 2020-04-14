@@ -1,4 +1,4 @@
-use crate::{error::Error, powerline::Segment};
+use crate::{powerline::Segment, R};
 
 mod cmd;
 mod cwd;
@@ -15,15 +15,17 @@ pub use readonly::{ReadOnly, ReadOnlyScheme};
 pub use user::{User, UserScheme};
 
 pub trait Module: Sized {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> Result<(), Error>;
+	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()>;
+
 	#[inline]
-	fn into_segments(mut self) -> Result<Vec<Segment>, Error> {
+	fn into_segments(mut self) -> R<Vec<Segment>> {
 		self.get_segments()
 	}
 
 	#[inline]
-	fn get_segments(&mut self) -> Result<Vec<Segment>, Error> {
+	fn get_segments(&mut self) -> R<Vec<Segment>> {
 		let mut vec = Vec::new();
+
 		self.append_segments(&mut vec).map(|_| vec)
 	}
 }

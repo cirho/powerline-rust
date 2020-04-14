@@ -14,10 +14,7 @@ impl Error {
 	}
 
 	pub fn wrap<E: std::error::Error + 'static>(inner: E, desc: &'static str) -> Error {
-		Error {
-			inner: Some(Box::new(inner)),
-			desc: Some(desc),
-		}
+		Error { inner: Some(Box::new(inner)), desc: Some(desc) }
 	}
 }
 

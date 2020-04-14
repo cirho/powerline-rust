@@ -45,7 +45,10 @@ pub fn get_detached_branch_name() -> R<String> {
 		.output()
 		.map_err(|e| Error::wrap(e, "Failed to run git"))?;
 	Ok(if child.status.success() {
-		let branch = std::str::from_utf8(&child.stdout)?.split('\n').next().ok_or_else(|| Error::from_str("Empty git output"))?;
+		let branch = std::str::from_utf8(&child.stdout)?
+			.split('\n')
+			.next()
+			.ok_or_else(|| Error::from_str("Empty git output"))?;
 		format!("\u{2693}{}", branch)
 	} else {
 		String::from("Big Bang")
@@ -102,13 +105,5 @@ pub fn run_git(_: &Path) -> R<super::GitStats> {
 		add_file(std::str::from_utf8(op)?);
 	}
 
-	Ok(super::GitStats {
-		untracked,
-		ahead,
-		behind,
-		non_staged,
-		staged,
-		conflicted,
-		branch_name,
-	})
+	Ok(super::GitStats { untracked, ahead, behind, non_staged, staged, conflicted, branch_name })
 }
