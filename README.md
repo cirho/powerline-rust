@@ -19,7 +19,7 @@ There is a demand to recompile every time while customizing, but you change your
 ```bash
 git clone https://github.com/Xeoeen/powerline-rust
 cd powerline-rust
-cargo +nightly install
+cargo +nightly install --path .
 ```
 ## Setting up shell
 #### Make sure you have executable in `$PATH`
