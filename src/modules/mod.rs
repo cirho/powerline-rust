@@ -2,6 +2,7 @@ use crate::{powerline::Segment, R};
 
 mod cmd;
 mod cwd;
+mod exit_code;
 mod git;
 mod host;
 mod readonly;
@@ -9,6 +10,7 @@ mod user;
 
 pub use cmd::{Cmd, CmdScheme};
 pub use cwd::{Cwd, CwdScheme};
+pub use exit_code::{ExitCode, ExitCodeScheme};
 pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
