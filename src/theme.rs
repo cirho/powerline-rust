@@ -35,6 +35,11 @@ impl ReadOnlyScheme for SimpleTheme {
 	const READONLY_FG: Color = Color(254);
 }
 
+impl TimeScheme for SimpleTheme {
+	const TIME_BG: Color = Color(238);
+	const TIME_FG: Color = Color(250);
+}
+
 impl GitScheme for SimpleTheme {
 	const GIT_AHEAD_BG: Color = Color(240);
 	const GIT_AHEAD_FG: Color = Color(250);

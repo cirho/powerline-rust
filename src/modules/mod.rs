@@ -5,6 +5,7 @@ mod cwd;
 mod git;
 mod host;
 mod readonly;
+mod time;
 mod user;
 
 pub use cmd::{Cmd, CmdScheme};
@@ -12,6 +13,7 @@ pub use cwd::{Cwd, CwdScheme};
 pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
+pub use time::{Time, TimeScheme};
 pub use user::{User, UserScheme};
 
 pub trait Module: Sized {
