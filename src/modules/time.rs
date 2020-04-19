@@ -1,3 +1,4 @@
+#[cfg(feature = "time")]
 use chrono;
 use std::{marker::PhantomData};
 

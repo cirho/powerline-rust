@@ -8,8 +8,8 @@ edition = "2018"
 users = "0.10"
 libc = "0.2"
 hostname = "0.3"
-git2 = { version = "0.13", optional = true, default-features = false}
-chrono = "0.4.11"
+git2 = { version = "0.13", optional = true, default-features = false }
+chrono = { version = "0.4.11", optional = true }
 
 [features]
 default = ["bash-shell", "libgit"]
@@ -17,6 +17,7 @@ bash-shell = []
 bare-shell = []
 zsh-shell = []
 libgit = ["git2"]
+time = ["chrono"]
 
 [profile.release]
 opt-level = 3

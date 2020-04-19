@@ -1,5 +1,8 @@
 use crate::{modules::*, terminal::Color};
 
+#[cfg(feature = "time")]
+use crate::modules::TimeScheme;
+
 #[derive(Copy, Clone)]
 pub struct SimpleTheme;
 
@@ -35,6 +38,7 @@ impl ReadOnlyScheme for SimpleTheme {
 	const READONLY_FG: Color = Color(254);
 }
 
+#[cfg(feature = "time")]
 impl TimeScheme for SimpleTheme {
 	const TIME_BG: Color = Color(238);
 	const TIME_FG: Color = Color(250);
