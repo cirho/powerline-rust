@@ -22,6 +22,11 @@ impl CwdScheme for SimpleTheme {
 	const SEPARATOR_FG: Color = Color(244);
 }
 
+impl ExitCodeScheme for SimpleTheme {
+	const EXIT_CODE_BG: Color = Color(161);
+	const EXIT_CODE_FG: Color = Color(15);
+}
+
 impl UserScheme for SimpleTheme {
 	const USERNAME_BG: Color = Color(240);
 	const USERNAME_FG: Color = Color(250);
