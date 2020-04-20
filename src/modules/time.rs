@@ -1,13 +1,13 @@
 #[cfg(feature = "time")]
 use chrono;
-use std::{marker::PhantomData};
+use std::marker::PhantomData;
 
 use super::Module;
 use crate::{powerline::Segment, terminal::Color, R};
 
 pub struct Time<S: TimeScheme> {
 	time_format: &'static str,
-	scheme: PhantomData<S>
+	scheme: PhantomData<S>,
 }
 
 pub trait TimeScheme {
@@ -21,7 +21,7 @@ impl<S: TimeScheme> Time<S> {
 	}
 
 	pub fn with_time_format(time_format: &'static str) -> Time<S> {
-		Time { time_format: time_format, scheme: PhantomData }
+		Time { time_format, scheme: PhantomData }
 	}
 }
 
