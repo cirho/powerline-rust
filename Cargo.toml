@@ -17,6 +17,7 @@ default = ["bash-shell", "libgit"]
 bash-shell = []
 bare-shell = []
 zsh-shell = []
+cli-options = []
 libgit = ["git2"]
 time = ["chrono"]
 
