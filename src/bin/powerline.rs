@@ -36,6 +36,7 @@ fn main() -> powerline::R<()> {
     let mut cmd_enabled = true;
     let mut exitcode_enabled = false;
 
+<<<<<<< HEAD
     if cfg!(feature="cli-options") {
         for arg in env::args() {
             match arg.as_str() {
@@ -85,6 +86,14 @@ fn main() -> powerline::R<()> {
     if exitcode_enabled {
         prompt.add_module(ExitCode::<SimpleTheme>::new())?;
     }
+	prompt.add_module(PyVenv::<SimpleTheme>::new())?;
+	prompt.add_module(User::<SimpleTheme>::new())?;
+	prompt.add_module(Host::<SimpleTheme>::new())?;
+	prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false))?;
+	prompt.add_module(Git::<SimpleTheme>::new())?;
+	prompt.add_module(ReadOnly::<SimpleTheme>::new())?;
+	prompt.add_module(Cmd::<SimpleTheme>::new())?;
+	// prompt.add_module(ExitCode::<SimpleTheme>::new())?;
 
     println!("{}", prompt);
     Ok(())
