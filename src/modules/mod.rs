@@ -7,6 +7,7 @@ mod git;
 mod host;
 mod readonly;
 mod user;
+mod pyvenv;
 
 #[cfg(feature = "time")]
 mod time;
@@ -18,6 +19,7 @@ pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
 pub use user::{User, UserScheme};
+pub use pyvenv::{PyVenv, PyVenvScheme};
 
 #[cfg(feature = "time")]
 pub use time::{Time, TimeScheme};

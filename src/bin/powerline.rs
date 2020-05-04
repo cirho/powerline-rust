@@ -22,11 +22,14 @@ const HOST_ENABLED_FLAG: &str = "host";
 const HOST_DISABLED_FLAG: &str = "-host";
 const CWD_ENABLED_FLAG: &str = "cwd";
 const CWD_DISABLED_FLAG: &str = "-cwd";
+const PYVENV_ENABLED_FLAG: &str = "pyvenv";
+const PYVENV_DISABLED_FLAG: &str = "-pyvenv";
 
 
 fn main() -> powerline::R<()> {
     let mut prompt = powerline::Powerline::new();
 
+    let mut pyvenv_enabled = true;
     let mut user_enabled = true;
     let mut host_enabled = true;
     let mut cwd_enabled = true;
@@ -55,6 +58,8 @@ fn main() -> powerline::R<()> {
                 HOST_DISABLED_FLAG => host_enabled = false,
                 CWD_ENABLED_FLAG => cwd_enabled = true,
                 CWD_DISABLED_FLAG => cwd_enabled = false,
+                PYVENV_ENABLED_FLAG => pyvenv_enabled = true,
+                PYVENV_DISABLED_FLAG => pyvenv_enabled = false,
                 _ => {}
             }
         }
@@ -63,6 +68,9 @@ fn main() -> powerline::R<()> {
         if time_enabled {
             prompt.add_module(Time::<SimpleTheme>::with_time_format("%H:%M:%S"))?;
         }
+    }
+    if pyvenv_enabled {
+        prompt.add_module(PyVenv::<SimpleTheme>::new())?;
     }
     if user_enabled {
         prompt.add_module(User::<SimpleTheme>::new())?;

@@ -67,3 +67,8 @@ impl GitScheme for SimpleTheme {
 	const GIT_UNTRACKED_BG: Color = Color(52);
 	const GIT_UNTRACKED_FG: Color = Color(15);
 }
+
+impl PyVenvScheme for SimpleTheme {
+	const PYVENV_FG: Color = Color(0);
+	const PYVENV_BG: Color = Color(35);
+}
