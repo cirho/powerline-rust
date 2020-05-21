@@ -6,5 +6,5 @@ pub mod theme;
 pub(crate) mod utils;
 
 pub type R<T> = Result<T, error::Error>;
+pub use crate::powerline::{Powerline, Segment};
 pub use error::Error;
-pub use powerline::{Powerline, Segment};
