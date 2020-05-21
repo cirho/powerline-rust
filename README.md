@@ -1,7 +1,7 @@
 # powerline-rust
-[![Build Status](https://travis-ci.org/Xeoeen/powerline-rust.svg?branch=lib)](https://travis-ci.org/Xeoeen/powerline-rust)
+[![Build Status](https://travis-ci.org/Xeoeen/powerline-rust.svg)](https://travis-ci.org/Xeoeen/powerline-rust)
 
-powerline-rust is an altervative to [powerline-shell](https://github.com/b-ryan/powerline-shell). It's heavily inspired by it, but focuses on **minimalizing time of execution**.
+powerline-rust is an alternative to [powerline-shell](https://github.com/b-ryan/powerline-shell). It's heavily inspired by it, but focuses on **minimalizing time of execution**.
 
 Nobody wants to see latency between pressing enter in favourite shell and seeing prompt. This is main aim of this crate and that's why some features of other alternatives like dynamic segments choosing and theming via **commandline arguments** is **not possible here**.
 
@@ -16,18 +16,18 @@ With default settings `powerline-rust` uses `libgit` for git prompt. Unfortunate
 - runs git backend only when needed (huge time improvements in directories not in git tree)
 - optional caching git results in memory or file
 
-## Simple installation
+## Simple installation 
 ```bash
 git clone https://github.com/Xeoeen/powerline-rust
 cd powerline-rust
+# bash shell 
 cargo install --path .
+# zsh shell 
+cargo install --path . --no-default-features --features=zsh-shell,libgit
+# fish shell
+cargo install --path . --no-default-features --features=bare-shell,libgit
 ```
-You can also install one of examples for different look.
-```bash
-git clone https://github.com/Xeoeen/powerline-rust
-cd powerline-rust
-cargo install --path . --example minimalistic
-```
+You can also install one of examples by adding `--example {name}` to cargo command.
 
 ## Setting up shell
 #### Make sure you have executable in `$PATH`
@@ -77,7 +77,7 @@ fn main() {
 
 
 ```
-## Tips and trics
+## Tips and trigs
 ### Strip executable
 Remove unnecessary symbols from file to greatly reduce size of it.
 Theoretically it can reduce time of execution.
@@ -93,6 +93,13 @@ strip powerline
 lto = true
 panic = 'abort'
 ```
+### Target native
+Enables optimizations for your specific processor.
+```bash
+RUSTFLAGS="-C target-cpu=native" cargo ...
+```
+### Cache untracked files 
+Git module can be slower on repos with big number of untracked files. Read about caching untracked files  [here](https://git-scm.com/docs/git-update-index). 
 
 ### Custom theme
 
