@@ -1,5 +1,5 @@
 # powerline-rust
-[![Build Status](https://travis-ci.org/Xeoeen/powerline-rust.svg)](https://travis-ci.org/Xeoeen/powerline-rust)
+![Build and Test](https://github.com/growse/powerline-rust/workflows/Build%20and%20Test/badge.svg)
 
 powerline-rust is an alternative to [powerline-shell](https://github.com/b-ryan/powerline-shell). It's heavily inspired by it, but focuses on **minimalizing time of execution**.
 
