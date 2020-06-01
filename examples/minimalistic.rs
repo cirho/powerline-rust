@@ -1,6 +1,6 @@
 use powerline::{modules::*, theme::SimpleTheme};
 
-fn main() -> powerline::R<()>{
+fn main() -> powerline::R<()> {
 	let mut prompt = powerline::Powerline::new();
 
 	prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false))?;
