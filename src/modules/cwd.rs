@@ -1,7 +1,7 @@
-use std::{env, marker::PhantomData, path};
-use dirs::home_dir;
 use super::Module;
 use crate::{terminal::Color, Segment, R};
+use dirs::home_dir;
+use std::{env, marker::PhantomData, path};
 
 pub struct Cwd<S: CwdScheme> {
 	max_length: usize,

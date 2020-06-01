@@ -98,7 +98,7 @@ pub fn run_git(_: &Path) -> R<super::GitStats> {
 				if a != ' ' {
 					staged += 1;
 				}
-			},
+			}
 		};
 	};
 	for op in lines.flat_map(|line| line.get(..2)) {

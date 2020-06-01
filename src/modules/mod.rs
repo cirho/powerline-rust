@@ -5,9 +5,9 @@ mod cwd;
 mod exit_code;
 mod git;
 mod host;
+mod pyvenv;
 mod readonly;
 mod user;
-mod pyvenv;
 
 #[cfg(feature = "time")]
 mod time;
@@ -17,9 +17,9 @@ pub use cwd::{Cwd, CwdScheme};
 pub use exit_code::{ExitCode, ExitCodeScheme};
 pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
+pub use pyvenv::{PyVenv, PyVenvScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
 pub use user::{User, UserScheme};
-pub use pyvenv::{PyVenv, PyVenvScheme};
 
 #[cfg(feature = "time")]
 pub use time::{Time, TimeScheme};
