@@ -13,11 +13,19 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
+      - name: Install kcov
+        run: sudo apt-get update && sudo apt-get install cmake g++ pkg-config jq  libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev -y
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - name: Install kcov cargo
+        run: cargo install cargo-kcov
+      - name: Install kcov
+        run: cargo kcov --print-install-kcov-sh | sh
       - name: Build
         run: cargo build --release --all-features
       - name: Test
-        run: cargo test
+        run: cargo kcov
+      - uses: codecov/codecov-action@v1
+        if: always()
