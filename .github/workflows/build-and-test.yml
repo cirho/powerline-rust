@@ -29,3 +29,30 @@ jobs:
         run: cargo kcov
       - uses: codecov/codecov-action@v1
         if: always()
+  make_multiarch:
+    name: Make multi-arch binaries
+    if: github.event_name != 'pull_request'
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build arm-muslhf
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          use-cross: true
+          args: --release --target=arm-unknown-linux-musleabihf
+      - name: Debug
+        run: |
+          find target
+      - name: Build x86_64-musl
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          use-cross: true
+          args: --release --target=x86_64-unknown-linux-musl
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: target
+          path: target/**/release/powerline
