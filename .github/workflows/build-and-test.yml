@@ -30,29 +30,67 @@ jobs:
       - uses: codecov/codecov-action@v1
         if: always()
   make_multiarch:
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - arm-unknown-linux-musleabihf
     name: Make multi-arch binaries
     if: github.event_name != 'pull_request'
     needs: build_and_test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build arm-muslhf
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           use-cross: true
-          args: --release --target=arm-unknown-linux-musleabihf
-      - name: Debug
-        run: |
-          find target
-      - name: Build x86_64-musl
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          use-cross: true
-          args: --release --target=x86_64-unknown-linux-musl
+          args: --release --target=${{ matrix.target }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: target
           path: target/**/release/powerline
+  package:
+    name: Build deb packages
+    if: github.event_name != 'pull_request'
+    needs: make_multiarch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: target
+      - name: Set up Ruby 2.5
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.5
+      - name: Install gems
+        run: |
+          gem install fpm deb-s3
+      - name: Make deb package
+        run: |
+          export DEB_VERSION="$(cat Cargo.toml | grep "^version = " | awk  '{gsub(/"/, "", $3); print $3}')-$(printf "%04d" $GITHUB_RUN_NUMBER)"
+          echo $DEB_VERSION
+          find -name powerline -exec chmod +x {} \;
+          fpm -f -s dir -t deb -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a amd64 -v $DEB_VERSION ./x86_64-unknown-linux-musl/release/powerline=/usr/bin/powerline-rust
+          fpm -f -s dir -t deb -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a arm -v $DEB_VERSION ./arm-unknown-linux-musleabihf/release/powerline=/usr/bin/powerline-rust
+        env:
+          DEB_NAME: powerline-rust
+          APPDESCRIPTION: powerline-shell written in Rust
+          APPURL: https://github.com/growse/powerline-rust
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: debfiles
+          path: "*.deb"
+      - name: Upload to S3 Apt repo
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DEBSIGN: ${{ secrets.DEBSIGN }}
+        run: |
+          echo 'aaaaaaaa' > passphrase_file
+          echo $DEBSIGN | base64 -d | gpg --import --batch
+          deb-s3 upload --s3-region=eu-north-1 --sign=6A2561804E290210909454E69640EFFBAA3B94A5 --gpg-options="\-\-pinentry\-mode=loopback \-\-passphrase\-file passphrase_file \-\-batch" --suite stable --origin "Andrew Rowson" --bucket apt.growse.com powerline-rust_*.deb
