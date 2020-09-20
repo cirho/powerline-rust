@@ -12,6 +12,9 @@ git2 = { version = "0.13", optional = true, default-features = false }
 chrono = { version = "0.4.11", optional = true }
 dirs = "2.0.2"
 
+[dev-dependencies]
+criterion = "0.3"
+
 [features]
 default = ["bash-shell", "libgit", "cli-options"]
 bash-shell = []
@@ -25,3 +28,7 @@ time = ["chrono"]
 opt-level = 3
 lto = true
 debug = false
+
+[[bench]]
+name = "cli"
+harness = false

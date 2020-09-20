@@ -39,10 +39,6 @@ impl Powerline {
 	pub fn add_module(&mut self, mut part: impl Module) -> R<()> {
 		part.append_segments(&mut self.segments)
 	}
-
-	pub fn add_segments(&mut self, new_segments: Vec<Segment>) {
-		self.segments.extend(new_segments);
-	}
 }
 
 impl fmt::Display for Powerline {
