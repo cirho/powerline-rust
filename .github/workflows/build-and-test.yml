@@ -2,6 +2,14 @@ name: Build and Test
 
 on:
   push:
+    paths-ignore:
+      - "*.md"
+      - LICENSE
+      - rustfmt.toml
+      - examples/**
+      - .github/dependabot.yml
+      - .github/pull_requests.yml
+      - .gitigore
     branches:
       - master
   pull_request:

@@ -1,4 +1,0 @@
-notifications:
-  email: false
-language: rust
-rust: nightly
