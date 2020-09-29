@@ -24,6 +24,13 @@ jobs:
       - name: Install kcov
         run: sudo apt-get update && sudo apt-get install cmake g++ pkg-config jq  libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev -y
       - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
