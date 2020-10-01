@@ -8,7 +8,7 @@ on:
       - rustfmt.toml
       - examples/**
       - .github/dependabot.yml
-      - .github/pull_requests.yml
+      - .github/workflows/pull_requests.yml
       - .gitigore
     branches:
       - master
