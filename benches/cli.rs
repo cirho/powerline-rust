@@ -17,14 +17,14 @@ fn benchmark_cli_prompt(c: &mut Criterion) {
 	group.bench_function("all the modules", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(PyVenv::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(User::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(Host::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false)).unwrap();
-			prompt.add_module(Git::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(ReadOnly::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(Cmd::<SimpleTheme>::new()).unwrap();
-			prompt.add_module(ExitCode::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(PyVenv::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(User::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(Host::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false)).unwrap_or(());
+			prompt.add_module(Git::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(ReadOnly::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(Cmd::<SimpleTheme>::new()).unwrap_or(());
+			prompt.add_module(ExitCode::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
@@ -32,56 +32,56 @@ fn benchmark_cli_prompt(c: &mut Criterion) {
 	group.bench_function("pyenv", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(PyVenv::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(PyVenv::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("user", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(User::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(User::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("host", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(Host::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(Host::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("cwd", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false)).unwrap();
+			prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false)).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("git", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(Git::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(Git::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("readonly", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(ReadOnly::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(ReadOnly::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("cmd", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(Cmd::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(Cmd::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
 	group.bench_function("exitcode", |b| {
 		b.iter(|| {
 			let mut prompt = powerline::Powerline::new();
-			prompt.add_module(ExitCode::<SimpleTheme>::new()).unwrap();
+			prompt.add_module(ExitCode::<SimpleTheme>::new()).unwrap_or(());
 			black_box(prompt.to_string())
 		})
 	});
