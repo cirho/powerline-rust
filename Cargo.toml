@@ -16,7 +16,7 @@ dirs = "3.0.1"
 criterion = "0.3"
 
 [features]
-default = ["bash-shell", "libgit", "cli-options"]
+default = ["bash-shell", "libgit", "cli-options", "time"]
 bash-shell = []
 bare-shell = []
 zsh-shell = []

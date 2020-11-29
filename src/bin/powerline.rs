@@ -39,6 +39,8 @@ fn main() -> powerline::R<()> {
 	let mut readonly_enabled = true;
 	let mut cmd_enabled = true;
 	let mut exitcode_enabled = false;
+
+	#[cfg(feature = "time")]
 	let mut time_enabled = true;
 
 	if cfg!(feature = "cli-options") {
