@@ -1,7 +1,6 @@
 extern crate powerline;
 
 use std::env;
-use std::time::Instant;
 
 #[cfg(feature = "time")]
 use powerline::modules::Time;
@@ -94,7 +93,6 @@ fn main() -> powerline::R<()> {
 	if cwd_enabled {
 		measure_elapsed("cwd", || prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false)))?;
 	}
-
 	if git_enabled {
 		measure_elapsed("git", || prompt.add_module(Git::<SimpleTheme>::new()))?;
 	}
@@ -114,11 +112,11 @@ fn main() -> powerline::R<()> {
 
 fn measure_elapsed(label: &str, mut expr: impl FnMut() -> R<()>) -> R<()> {
 	#[cfg(feature = "print-module-timings")]
-	let start = Instant::now();
+	let start = std::time::Instant::now();
 	let result = expr();
 	#[cfg(feature = "print-module-timings")]
 	if env::var("POWERLINE_DEBUG_TIMINGS").unwrap_or("".to_string()) == "1" {
-		println!("{} completed in {:#?}", label, Instant::now().duration_since(start));
+		println!("{} completed in {:#?}", label, std::time::Instant::now().duration_since(start));
 	}
 	result
 }
