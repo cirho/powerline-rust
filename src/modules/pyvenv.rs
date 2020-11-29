@@ -1,9 +1,10 @@
-use super::Module;
 use std::marker::PhantomData;
+use std::path::Path;
 
 use crate::terminal::Color;
 use crate::{Segment, R};
-use std::path::Path;
+
+use super::Module;
 
 pub struct PyVenv<S: PyVenvScheme> {
 	scheme: PhantomData<S>,
@@ -24,18 +25,17 @@ impl<S: PyVenvScheme> PyVenv<S> {
 impl<S: PyVenvScheme> Module for PyVenv<S> {
 	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
 		let pyvenv = std::env::var("VIRTUAL_ENV")
-			.or(std::env::var("CONDA_ENV_PATH"))
-			.or(std::env::var("CONDA_DEFAULT_ENV"));
+			.or_else(|_| std::env::var("CONDA_ENV_PATH"))
+			.or_else(|_| std::env::var("CONDA_DEFAULT_ENV"));
 		match pyvenv {
 			Ok(venv) => {
-				Path::new(&venv).file_name().and_then(|venv_name| {
+				if let Some(venv_name) = Path::new(&venv).file_name() {
 					segments.push(Segment::simple(
 						format!(" {} {} ", S::PYVENV_SYMBOL, venv_name.to_string_lossy()),
 						S::PYVENV_FG,
 						S::PYVENV_BG,
 					));
-					Some(())
-				});
+				}
 
 				Ok(())
 			}
