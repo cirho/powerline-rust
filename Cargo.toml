@@ -1,6 +1,6 @@
 [package]
 name = "powerline"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["growse <github@growse.com>", "cirho <me@cirho.com>"]
 edition = "2018"
 
@@ -23,6 +23,7 @@ zsh-shell = []
 cli-options = []
 libgit = ["git2"]
 time = ["chrono"]
+print-module-timings = []
 
 [profile.release]
 opt-level = 3
