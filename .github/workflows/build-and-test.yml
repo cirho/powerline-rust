@@ -102,8 +102,8 @@ jobs:
           export DEB_VERSION="$(cat Cargo.toml | grep "^version = " | awk  '{gsub(/"/, "", $3); print $3}')-$(printf "%04d" $GITHUB_RUN_NUMBER)"
           echo $DEB_VERSION
           find -name powerline -exec chmod +x {} \;
-          fpm -f -s dir -t deb -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a amd64 -v $DEB_VERSION ./x86_64-unknown-linux-musl/release/powerline=/usr/bin/powerline-rust
-          fpm -f -s dir -t deb -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a armhf -v $DEB_VERSION ./arm-unknown-linux-musleabihf/release/powerline=/usr/bin/powerline-rust
+          fpm -f -s dir -t deb --deb-priority optional --maintainer github@growse.com --vendor github@growse.com --license MIT -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a amd64 -v $DEB_VERSION ./x86_64-unknown-linux-musl/release/powerline=/usr/bin/powerline-rust
+          fpm -f -s dir -t deb --deb-priority optional --maintainer github@growse.com --vendor github@growse.com --license MIT -n $DEB_NAME --description "$APPDESCRIPTION" --url $APPURL --prefix / -a armhf -v $DEB_VERSION ./arm-unknown-linux-musleabihf/release/powerline=/usr/bin/powerline-rust
         env:
           DEB_NAME: powerline-rust
           APPDESCRIPTION: powerline-shell written in Rust
