@@ -113,12 +113,12 @@ jobs:
         with:
           name: debfiles
           path: "*.deb"
-      - name: Upload to S3 Apt repo
+      - name: Upload to Apt repo
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DEBSIGN: ${{ secrets.DEBSIGN }}
+          KEY_PASSPHRASE: ${{ secrets.DEBSIGN_KEY_PASSPHRASE }}
+          APT_CREDENTIALS: ${{ secrets.APT_CREDENTIALS }}
         run: |
-          echo 'aaaaaaaa' > passphrase_file
-          echo $DEBSIGN | base64 -d | gpg --import --batch
-          deb-s3 upload --s3-region=eu-north-1 --sign=6A2561804E290210909454E69640EFFBAA3B94A5 --gpg-options="\-\-pinentry\-mode=loopback \-\-passphrase\-file passphrase_file \-\-batch" --suite stable --origin "Andrew Rowson" --bucket apt.growse.com powerline-rust_*.deb
+          echo $APT_CREDENTIALS > aptly-auth
+          find -maxdepth 1 -name "*.deb" -exec curl --netrc-file aptly-auth -XPOST -F file=@{} https://apttoo.growse.com/api/files/powerline \;
+          curl --netrc-file aptly-auth -X POST https://apttoo.growse.com/api/repos/defaultrepo/file/powerline
+          curl --netrc-file aptly-auth -X PUT https://apttoo.growse.com/api/publish/:./stablish
