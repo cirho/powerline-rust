@@ -86,7 +86,7 @@ jobs:
           path: vendor/bundle
           key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-gems-        
+            ${{ runner.os }}-gems-
       - uses: actions/download-artifact@v2
         with:
           name: target
@@ -96,7 +96,7 @@ jobs:
           ruby-version: 2.5
       - name: Install gems
         run: |
-          gem install fpm deb-s3
+          gem install fpm
       - name: Make deb package
         run: |
           export DEB_VERSION="$(cat Cargo.toml | grep "^version = " | awk  '{gsub(/"/, "", $3); print $3}')-$(printf "%04d" $GITHUB_RUN_NUMBER)"
