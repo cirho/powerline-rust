@@ -119,6 +119,10 @@ jobs:
           APT_CREDENTIALS: ${{ secrets.APT_CREDENTIALS }}
         run: |
           echo $APT_CREDENTIALS > aptly-auth
-          find -maxdepth 1 -name "*.deb" -exec curl --netrc-file aptly-auth -XPOST -F file=@{} https://apttoo.growse.com/api/files/powerline \;
-          curl --netrc-file aptly-auth -X POST https://apttoo.growse.com/api/repos/defaultrepo/file/powerline
-          curl --netrc-file aptly-auth -X PUT https://apttoo.growse.com/api/publish/:./stablish
+          find -maxdepth 1 -name "*.deb" -exec curl -f --netrc-file aptly-auth -XPOST -F file=@{} https://apttoo.growse.com/api/files/powerline \;
+          export result=$(curl -f --netrc-file aptly-auth -X POST https://apttoo.growse.com/api/repos/defaultrepo/file/powerline)
+          echo $result
+          export failed=$(echo $result | jq '.FailedFiles | length')
+          if [[ "$failed" != "0" ]]; then exit 1; fi
+          curl -f --netrc-file aptly-auth -X PUT https://apttoo.growse.com/api/publish/:./stablish
+
