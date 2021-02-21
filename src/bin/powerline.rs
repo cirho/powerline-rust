@@ -111,6 +111,7 @@ fn main() -> powerline::R<()> {
 }
 
 fn measure_elapsed(label: &str, mut expr: impl FnMut() -> R<()>) -> R<()> {
+	let _ = label;
 	#[cfg(feature = "print-module-timings")]
 	let start = std::time::Instant::now();
 	let result = expr();

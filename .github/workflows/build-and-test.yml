@@ -90,7 +90,7 @@ jobs:
           ruby-version: 2.5
       - name: Install gems
         run: |
-          gem install fpm
+          gem install fpm -v 1.11.0
       - name: Make deb package
         run: |
           export DEB_VERSION="$(cat Cargo.toml | grep "^version = " | awk  '{gsub(/"/, "", $3); print $3}')-$(printf "%04d" $GITHUB_RUN_NUMBER)"

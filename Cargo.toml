@@ -1,10 +1,11 @@
 [package]
 name = "powerline"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["growse <github@growse.com>", "cirho <me@cirho.com>"]
 edition = "2018"
 
 [dependencies]
+anyhow = "1.0.38"
 users = "0.11"
 libc = "0.2"
 hostname = "0.3"
@@ -28,7 +29,7 @@ print-module-timings = []
 [profile.release]
 opt-level = 3
 lto = true
-debug = false
+debug = true
 
 [[bench]]
 name = "cli"

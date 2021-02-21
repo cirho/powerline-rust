@@ -34,7 +34,6 @@ impl<S: ExitCodeScheme> Module for ExitCode<S> {
 #[cfg(test)]
 mod test {
 	use super::*;
-	use crate::powerline;
 	use crate::theme::SimpleTheme;
 
 	#[test]
