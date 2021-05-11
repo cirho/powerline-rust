@@ -18,12 +18,11 @@ pub use exit_code::{ExitCode, ExitCodeScheme};
 pub use git::{Git, GitScheme};
 pub use host::{Host, HostScheme};
 pub use readonly::{ReadOnly, ReadOnlyScheme};
+#[cfg(feature = "time")]
+pub use time::{Time, TimeScheme};
 pub use user::{User, UserScheme};
 pub use venv::{VirtualEnv, VirtualEnvScheme};
 
-#[cfg(feature = "time")]
-pub use time::{Time, TimeScheme};
-
 pub trait Module: Sized {
-	fn append_segments(&mut self, powerline: &mut Powerline);
+    fn append_segments(&mut self, powerline: &mut Powerline);
 }

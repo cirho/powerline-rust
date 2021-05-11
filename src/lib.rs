@@ -5,6 +5,5 @@ pub mod theme;
 
 pub(crate) mod utils;
 
-pub use crate::{
-	powerline::{Powerline, Style}, terminal::Color
-};
+pub use crate::powerline::{Powerline, Style};
+pub use crate::terminal::Color;
