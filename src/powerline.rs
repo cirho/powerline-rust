@@ -28,7 +28,7 @@ pub struct Powerline {
 
 impl Powerline {
     pub fn new() -> Powerline {
-        Powerline { buffer: String::with_capacity(128), last_style: None }
+        Powerline { buffer: String::with_capacity(512), last_style: None }
     }
 
     #[inline(always)]
