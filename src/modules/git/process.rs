@@ -1,6 +1,6 @@
 use std::{path::Path, process::Command};
 
-use crate::{Error, R};
+use super::GitStats;
 
 pub fn get_first_number(s: &str) -> u32 {
 	s.chars().take_while(|x| x.is_digit(10)).flat_map(|x| x.to_digit(10)).fold(0, |acc, x| 10 * acc + x)
@@ -39,31 +39,22 @@ pub fn get_branch_name(s: &str) -> Option<&str> {
 	}
 }
 
-pub fn get_detached_branch_name() -> R<String> {
-	let child = Command::new("git")
-		.args(&["describe", "--tags", "--always"])
-		.output()
-		.map_err(|e| Error::wrap(e, "Failed to run git"))?;
-	Ok(if child.status.success() {
-		let branch = std::str::from_utf8(&child.stdout)?
-			.split('\n')
-			.next()
-			.ok_or_else(|| Error::from_str("Empty git output"))?;
+pub fn get_detached_branch_name() -> String {
+	let child = Command::new("git").args(&["describe", "--tags", "--always"]).output().unwrap();
+
+	if child.status.success() {
+		let branch = std::str::from_utf8(&child.stdout).unwrap().split('\n').next().unwrap();
 		format!("\u{2693}{}", branch)
 	} else {
 		String::from("Big Bang")
-	})
+	}
 }
 
-pub fn run_git(_: &Path) -> R<super::GitStats> {
-	let output = Command::new("git")
-		.args(&["status", "--porcelain", "-b"])
-		.output()
-		.map_err(|e| Error::wrap(e, "Failed to run git"))?
-		.stdout;
+pub fn run_git(_: &Path) -> GitStats {
+	let output = Command::new("git").args(&["status", "--porcelain", "-b"]).output().unwrap().stdout;
 
 	let mut lines = output.split(|x| *x == (b'\n'));
-	let branch_line = std::str::from_utf8(lines.next().ok_or_else(|| Error::from_str("Empty git output"))?)?;
+	let branch_line = std::str::from_utf8(lines.next().unwrap()).unwrap();
 
 	let mut ahead = 0;
 	let mut behind = 0;
@@ -81,7 +72,7 @@ pub fn run_git(_: &Path) -> R<super::GitStats> {
 			}
 			String::from(branch_name)
 		} else {
-			get_detached_branch_name()?
+			get_detached_branch_name()
 		}
 	};
 	let mut add_file = |entry: &str| {
@@ -102,8 +93,8 @@ pub fn run_git(_: &Path) -> R<super::GitStats> {
 		};
 	};
 	for op in lines.flat_map(|line| line.get(..2)) {
-		add_file(std::str::from_utf8(op)?);
+		add_file(std::str::from_utf8(op).unwrap());
 	}
 
-	Ok(super::GitStats { untracked, ahead, behind, non_staged, staged, conflicted, branch_name })
+	super::GitStats { untracked, ahead, behind, non_staged, staged, conflicted, branch_name }
 }

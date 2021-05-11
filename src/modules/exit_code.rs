@@ -1,7 +1,7 @@
 use std::{env, marker::PhantomData};
 
 use super::Module;
-use crate::{powerline::Segment, terminal::Color, R};
+use crate::{Color, Powerline, Style};
 
 pub struct ExitCode<S: ExitCodeScheme> {
 	scheme: PhantomData<S>,
@@ -19,14 +19,11 @@ impl<S: ExitCodeScheme> ExitCode<S> {
 }
 
 impl<S: ExitCodeScheme> Module for ExitCode<S> {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let exit_code = env::args().nth(1).unwrap_or_else(|| "1".to_string());
-
-		if exit_code != "0" {
-			let (fg, bg) = (S::EXIT_CODE_FG, S::EXIT_CODE_BG);
-			segments.push(Segment::simple(format!(" {} ", exit_code), fg, bg));
+	fn append_segments(&mut self, powerline: &mut Powerline) {
+		if let Some(exit_code) = env::args().nth(1).as_deref() {
+			if exit_code != "0" {
+				powerline.add_segment(exit_code, Style::simple(S::EXIT_CODE_FG, S::EXIT_CODE_BG))
+			}
 		}
-
-		Ok(())
 	}
 }

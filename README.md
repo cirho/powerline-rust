@@ -1,5 +1,5 @@
 # powerline-rust
-[![Build Status](https://travis-ci.org/Xeoeen/powerline-rust.svg)](https://travis-ci.org/Xeoeen/powerline-rust)
+[![Build Status](https://travis-ci.org/cirho/powerline-rust.svg)](https://travis-ci.org/cirho/powerline-rust)
 
 powerline-rust is an alternative to [powerline-shell](https://github.com/b-ryan/powerline-shell). It's heavily inspired by it, but focuses on **minimalizing time of execution**.
 
@@ -18,7 +18,7 @@ With default settings `powerline-rust` uses `libgit` for git prompt. Unfortunate
 
 ## Simple installation 
 ```bash
-git clone https://github.com/Xeoeen/powerline-rust
+git clone https://github.com/cirho/powerline-rust
 cd powerline-rust
 # bash shell 
 cargo install --path .

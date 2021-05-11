@@ -1,7 +1,7 @@
 use std::{env, marker::PhantomData, path};
 
 use super::Module;
-use crate::{terminal::Color, Segment, R};
+use crate::{Color, Powerline, Style};
 
 pub struct Cwd<S: CwdScheme> {
 	max_length: usize,
@@ -27,31 +27,32 @@ impl<S: CwdScheme> Cwd<S> {
 }
 
 macro_rules! append_cwd_segments {
-	($segments: ident, $iter: expr) => {
+	($powerline: ident, $iter: expr) => {
 		for val in $iter {
-			$segments.push(Segment::special(
-				format!(" {} ", val),
-				S::PATH_FG,
-				S::PATH_BG,
-				'\u{E0B1}',
-				S::SEPARATOR_FG,
-			));
-			}
+			$powerline.add_segment(val, Style::special(S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
+		}
 	};
 }
 
 impl<S: CwdScheme> Module for Cwd<S> {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let current_dir =
-			if self.resolve_symlinks { env::current_dir()? } else { path::PathBuf::from(env::var("PWD")?) };
+	fn append_segments(&mut self, powerline: &mut Powerline) {
+		let current_dir = if self.resolve_symlinks {
+			env::current_dir().unwrap()
+		} else {
+			path::PathBuf::from(env::var("PWD").unwrap())
+		};
 
 		let mut cwd = current_dir.to_str().unwrap();
+
+		if cwd == "/" {
+			return powerline.add_segment('/', Style::simple(S::PATH_FG, S::PATH_BG));
+		}
 
 		if let Some(home_path) = env::home_dir() {
 			let home_str = home_path.to_str().unwrap();
 
 			if cwd.starts_with(home_str) {
-				segments.push(Segment::simple(format!(" {} ", S::CWD_HOME_SYMBOL), S::HOME_FG, S::HOME_BG));
+				powerline.add_segment(S::CWD_HOME_SYMBOL, Style::simple(S::HOME_FG, S::HOME_BG));
 				cwd = &cwd[home_str.len()..]
 			}
 		}
@@ -64,30 +65,17 @@ impl<S: CwdScheme> Module for Cwd<S> {
 			let start = cwd.split('/').skip(1).take(left);
 			let end = cwd.split('/').skip(depth - right + 1);
 
-			append_cwd_segments!(segments, start);
-			segments.push(Segment::special(
-				" \u{2026} ",
-				S::PATH_FG,
-				S::PATH_BG,
-				'\u{E0B1}',
-				S::SEPARATOR_FG,
-			));
-			append_cwd_segments!(segments, end);
+			append_cwd_segments!(powerline, start);
+			powerline
+				.add_segment('\u{2026}', Style::special(S::PATH_FG, S::PATH_BG, '\u{E0B1}', S::SEPARATOR_FG));
+			append_cwd_segments!(powerline, end);
 		} else {
-			append_cwd_segments!(segments, cwd.split('/').skip(1));
+			append_cwd_segments!(powerline, cwd.split('/').skip(1));
 		};
 
-		// todo get rid of me
-		if let Some(last) = segments.last_mut() {
-			if &last.val == "  " {
-				last.val = " / ".to_string()
-			}
-
-			last.fg = S::CWD_FG.into_fg();
-			last.sep = '\u{E0B0}';
-			last.sep_col = last.bg.transpose();
+		if let Some(style) = powerline.last_style_mut() {
+			style.sep = '\u{E0B0}';
+			style.sep_fg = style.bg.transpose();
 		}
-
-		Ok(())
 	}
 }

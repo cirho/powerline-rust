@@ -1,60 +1,75 @@
-use std::fmt;
+use std::fmt::{self, Display, Write};
 
-use crate::{modules::Module, terminal::*, R};
+use crate::{modules::Module, terminal::*};
 
 #[derive(Clone)]
-pub struct Segment {
-	pub val: String,
+pub struct Style {
 	pub fg: FgColor,
 	pub bg: BgColor,
 	pub sep: char,
-	pub sep_col: FgColor,
+	pub sep_fg: FgColor,
 }
 
-impl Segment {
-	pub fn simple<S: Into<String>>(val: S, fg: Color, bg: Color) -> Segment {
-		Segment {
-			val: val.into(),
-			fg: fg.into_fg(),
-			bg: bg.into_bg(),
-			sep: '\u{E0B0}',
-			sep_col: bg.into_fg(),
-		}
+impl Style {
+	pub fn simple(fg: Color, bg: Color) -> Style {
+		Style { fg: fg.into(), bg: bg.into(), sep: '\u{E0B0}', sep_fg: bg.into() }
 	}
 
-	pub fn special<S: Into<String>>(val: S, fg: Color, bg: Color, sep: char, sep_col: Color) -> Segment {
-		Segment { val: val.into(), fg: fg.into_fg(), bg: bg.into_bg(), sep, sep_col: sep_col.into_fg() }
+	pub fn special(fg: Color, bg: Color, sep: char, sep_fg: Color) -> Style {
+		Style { fg: fg.into(), bg: bg.into(), sep, sep_fg: sep_fg.into() }
 	}
 }
 
 pub struct Powerline {
-	segments: Vec<Segment>,
+	buffer: String,
+	last_style: Option<Style>,
 }
 
 impl Powerline {
 	pub fn new() -> Powerline {
-		Powerline { segments: Vec::new() }
+		Powerline { buffer: String::with_capacity(128), last_style: None }
 	}
 
-	pub fn add_module(&mut self, mut part: impl Module) -> R<()> {
-		part.append_segments(&mut self.segments)
+	#[inline(always)]
+	fn write_segment<D: Display>(&mut self, seg: D, style: Style, spaces: bool) {
+		// write!(f, "{}{}{}{}{}{}", seg.fg, seg.bg, seg.val, next.bg, seg.sep_col, seg.sep)?;
+		if let Some(Style { sep_fg, sep, .. }) = self.last_style {
+			let _ = write!(self.buffer, "{}{}{}", sep_fg, style.bg, sep);
+		}
+
+		if spaces {
+			let _ = write!(self.buffer, "{}{} {} ", style.fg, style.bg, seg);
+		} else {
+			let _ = write!(self.buffer, "{}{}{}", style.fg, style.bg, seg);
+		}
+
+		self.last_style = Some(style)
 	}
 
-	pub fn add_segments(&mut self, new_segments: Vec<Segment>) {
-		self.segments.extend(new_segments);
+	pub fn add_segment<D: Display>(&mut self, seg: D, style: Style) {
+		self.write_segment(seg, style, true)
+	}
+
+	pub fn add_short_segment<D: Display>(&mut self, seg: D, style: Style) {
+		self.write_segment(seg, style, false)
+	}
+
+	pub fn add_module<M: Module>(&mut self, mut module: M) {
+		module.append_segments(self)
+	}
+
+	pub fn last_style_mut(&mut self) -> Option<&mut Style> {
+		self.last_style.as_mut()
 	}
 }
 
 impl fmt::Display for Powerline {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let mut iter = self.segments.iter().peekable();
-		while let Some(seg) = iter.next() {
-			if let Some(next) = iter.peek() {
-				write!(f, "{}{}{}{}{}{}", seg.fg, seg.bg, seg.val, next.bg, seg.sep_col, seg.sep)?;
-			} else {
-				write!(f, "{}{}{}{}{}{}", seg.fg, seg.bg, seg.val, Reset, seg.sep_col, seg.sep)?;
-			}
+		match self.last_style {
+			Some(Style { sep_fg, sep, .. }) => {
+				write!(f, "{}{}{}{}{}", self.buffer, Reset, sep_fg, sep, Reset)
+			},
+			None => Ok(()),
 		}
-		write!(f, "{} ", Reset)
 	}
 }

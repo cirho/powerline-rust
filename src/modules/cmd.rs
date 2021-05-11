@@ -1,7 +1,7 @@
 use std::{env, marker::PhantomData};
 
 use super::Module;
-use crate::{powerline::Segment, terminal::Color, R};
+use crate::{Color, Powerline, Style};
 
 pub struct Cmd<S: CmdScheme> {
 	status: Option<bool>,
@@ -28,17 +28,14 @@ impl<S: CmdScheme> Cmd<S> {
 }
 
 impl<S: CmdScheme> Module for Cmd<S> {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
+	fn append_segments(&mut self, powerline: &mut Powerline) {
 		let (fg, bg) = if self.status.or_else(|| env::args().nth(1).map(|x| x == "0")).unwrap_or(false) {
 			(S::CMD_PASSED_FG, S::CMD_PASSED_BG)
 		} else {
 			(S::CMD_FAILED_FG, S::CMD_FAILED_BG)
 		};
 
-		let is_root = users::get_current_uid() == 0;
-		let special = if is_root { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
-		segments.push(Segment::simple(format!(" {} ", special), fg, bg));
-
-		Ok(())
+		let special = if users::get_current_uid() == 0 { S::CMD_ROOT_SYMBOL } else { S::CMD_USER_SYMBOL };
+		powerline.add_segment(special, Style::simple(fg, bg));
 	}
 }

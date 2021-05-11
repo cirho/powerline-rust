@@ -1,4 +1,4 @@
-use crate::{powerline::Segment, R};
+use crate::powerline::Powerline;
 
 mod cmd;
 mod cwd;
@@ -25,17 +25,5 @@ pub use venv::{VirtualEnv, VirtualEnvScheme};
 pub use time::{Time, TimeScheme};
 
 pub trait Module: Sized {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()>;
-
-	#[inline]
-	fn into_segments(mut self) -> R<Vec<Segment>> {
-		self.get_segments()
-	}
-
-	#[inline]
-	fn get_segments(&mut self) -> R<Vec<Segment>> {
-		let mut vec = Vec::new();
-
-		self.append_segments(&mut vec).map(|_| vec)
-	}
+	fn append_segments(&mut self, powerline: &mut Powerline);
 }

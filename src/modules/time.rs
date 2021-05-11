@@ -1,9 +1,8 @@
-#[cfg(feature = "time")]
 use chrono;
 use std::marker::PhantomData;
 
 use super::Module;
-use crate::{powerline::Segment, terminal::Color, R};
+use crate::{Color, Powerline, Style};
 
 pub struct Time<S: TimeScheme> {
 	time_format: &'static str,
@@ -26,14 +25,9 @@ impl<S: TimeScheme> Time<S> {
 }
 
 impl<S: TimeScheme> Module for Time<S> {
-	fn append_segments(&mut self, segments: &mut Vec<Segment>) -> R<()> {
-		let (fg, bg) = (S::TIME_FG, S::TIME_BG);
+	fn append_segments(&mut self, powerline: &mut Powerline) {
+		let now = chrono::offset::Local::now().format(self.time_format);
 
-		let now = chrono::offset::Local::now();
-		let value = now.format(self.time_format).to_string();
-
-		segments.push(Segment::simple(format!(" {} ", value), fg, bg));
-
-		Ok(())
+		powerline.add_segment(now, Style::simple(S::TIME_FG, S::TIME_BG));
 	}
 }

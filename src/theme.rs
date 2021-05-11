@@ -1,7 +1,4 @@
-use crate::{modules::*, terminal::Color};
-
-#[cfg(feature = "time")]
-use crate::modules::TimeScheme;
+use crate::{modules::*, Color};
 
 #[derive(Copy, Clone)]
 pub struct SimpleTheme;

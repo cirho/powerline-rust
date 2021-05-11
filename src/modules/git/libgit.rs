@@ -2,10 +2,10 @@ use std::path::Path;
 
 use git2::{Branch, BranchType, ObjectType, Repository, Status, StatusOptions, StatusShow};
 
-use crate::{modules::git::GitStats, R};
+use super::GitStats;
 
-pub fn run_git(path: &Path) -> R<super::GitStats> {
-	let repository = Repository::open(path)?;
+pub fn run_git(path: &Path) -> GitStats {
+	let repository = Repository::open(path).unwrap();
 
 	let mut status_options = StatusOptions::new();
 	status_options
@@ -17,7 +17,7 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 	let (mut untracked, mut non_staged, mut conflicted, mut staged, mut ahead, mut behind) =
 		(0, 0, 0, 0, 0, 0);
 
-	for status in repository.statuses(Some(&mut status_options))?.iter().map(|ref x| x.status()) {
+	for status in repository.statuses(Some(&mut status_options)).unwrap().iter().map(|ref x| x.status()) {
 		if status.intersects(
 			Status::INDEX_NEW
 				| Status::INDEX_MODIFIED
@@ -39,7 +39,8 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 	}
 
 	let active_branch: Option<Branch> = repository
-		.branches(Some(BranchType::Local))?
+		.branches(Some(BranchType::Local))
+		.unwrap()
 		.filter_map(Result::ok)
 		.map(|x| x.0)
 		.find(|b| b.is_head());
@@ -49,7 +50,7 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 		let upstream = active_branch.upstream().ok().and_then(|obj| obj.get().target());
 
 		if let (Some(local), Some(upstream)) = (local, upstream) {
-			let (a, b) = repository.graph_ahead_behind(local, upstream)?;
+			let (a, b) = repository.graph_ahead_behind(local, upstream).unwrap();
 			ahead = a as u32;
 			behind = b as u32;
 		};
@@ -73,7 +74,7 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 			}
 		});
 
-	Ok(GitStats {
+	GitStats {
 		untracked,
 		staged,
 		non_staged,
@@ -81,5 +82,5 @@ pub fn run_git(path: &Path) -> R<super::GitStats> {
 		behind: behind as u32,
 		conflicted,
 		branch_name,
-	})
+	}
 }
