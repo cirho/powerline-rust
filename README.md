@@ -63,16 +63,16 @@ Simply create new rust program that fulfils your requirements.
 use powerline::{modules::*, theme::SimpleTheme};
 
 fn main() {
-	let mut prompt = powerline::Powerline::new();
+    let mut prompt = powerline::Powerline::new();
 
-	prompt.add_module(User::<SimpleTheme>::new());
-	prompt.add_module(Host::<SimpleTheme>::new());
-	prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false));
-	prompt.add_module(Git::<SimpleTheme>::new());
-	prompt.add_module(ReadOnly::<SimpleTheme>::new());
-	prompt.add_module(Cmd::<SimpleTheme>::new());
+    prompt.add_module(User::<SimpleTheme>::new());
+    prompt.add_module(Host::<SimpleTheme>::new());
+    prompt.add_module(Cwd::<SimpleTheme>::new(45, 4, false));
+    prompt.add_module(Git::<SimpleTheme>::new());
+    prompt.add_module(ReadOnly::<SimpleTheme>::new());
+    prompt.add_module(Cmd::<SimpleTheme>::new());
 
-	println!("{}", prompt);
+    println!("{}", prompt);
 }
 
 
@@ -109,18 +109,15 @@ use powerline::{modules::*, terminal::Color};
 struct Theme;
 
 impl CmdScheme for Theme {
-	const CMD_FAILED_BG: Color = Color(161);
-	const CMD_FAILED_FG: Color = Color(15);
-	const CMD_PASSED_BG: Color = Color(236);
-	const CMD_PASSED_FG: Color = Color(15);
+    const CMD_FAILED_BG: Color = Color(161);
+    const CMD_FAILED_FG: Color = Color(15);
+    const CMD_PASSED_BG: Color = Color(236);
+    const CMD_PASSED_FG: Color = Color(15);
 }
 
 fn main() {
-	let mut prompt = powerline::Powerline::new();
-	prompt.add_module(Cmd::<SimpleTheme>::new());
+    let mut prompt = powerline::Powerline::new();
+    prompt.add_module(Cmd::<SimpleTheme>::new());
 
 ...
 ```
-
-
-
