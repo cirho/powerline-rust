@@ -1,13 +1,12 @@
-use std::convert::From;
-
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Color(pub u8);
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct BgColor(u8);
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct FgColor(u8);
+
 pub struct Reset;
 
 impl Color {

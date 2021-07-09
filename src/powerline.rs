@@ -34,15 +34,18 @@ impl Powerline {
     #[inline(always)]
     fn write_segment<D: Display>(&mut self, seg: D, style: Style, spaces: bool) {
         // write!(f, "{}{}{}{}{}{}", seg.fg, seg.bg, seg.val, next.bg, seg.sep_col, seg.sep)?;
-        if let Some(Style { sep_fg, sep, .. }) = self.last_style {
-            let _ = write!(self.buffer, "{}{}{}", sep_fg, style.bg, sep);
+
+        let _ = if let Some(Style { sep_fg, sep, .. }) = self.last_style {
+            write!(self.buffer, "{}{}{}", style.bg, sep_fg, sep)
+        } else {
+            write!(self.buffer, "{}", style.bg)
+        };
+
+        if self.last_style.as_ref().map(|s| s.sep_fg) != Some(style.fg) {
+            let _ = write!(self.buffer, "{}", style.fg);
         }
 
-        if spaces {
-            let _ = write!(self.buffer, "{}{} {} ", style.fg, style.bg, seg);
-        } else {
-            let _ = write!(self.buffer, "{}{}{}", style.fg, style.bg, seg);
-        }
+        let _ = if spaces { write!(self.buffer, " {} ", seg) } else { write!(self.buffer, "{}", seg) };
 
         self.last_style = Some(style)
     }
@@ -67,9 +70,7 @@ impl Powerline {
 impl fmt::Display for Powerline {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.last_style {
-            Some(Style { sep_fg, sep, .. }) => {
-                write!(f, "{}{}{}{}{}", self.buffer, Reset, sep_fg, sep, Reset)
-            },
+            Some(Style { sep_fg, sep, .. }) => write!(f, "{}{}{}{}{}", self.buffer, Reset, sep_fg, sep, Reset),
             None => Ok(()),
         }
     }
