@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::env;
 use std::marker::PhantomData;
 use std::path::PathBuf;
@@ -13,6 +14,7 @@ use process as internal;
 
 #[cfg(feature = "libgit")]
 mod libgit;
+
 #[cfg(feature = "libgit")]
 use libgit as internal;
 
@@ -82,7 +84,7 @@ impl<S: GitScheme> Module for Git<S> {
     fn append_segments(&mut self, powerline: &mut Powerline) {
         let git_dir = match find_git_dir() {
             Some(dir) => dir,
-            _ => return (),
+            _ => return,
         };
 
         let stats = internal::run_git(&git_dir);
@@ -95,12 +97,10 @@ impl<S: GitScheme> Module for Git<S> {
 
         powerline.add_segment(stats.branch_name, Style::simple(branch_fg, branch_bg));
 
-        let mut add_elem = |count, symbol, fg, bg| {
-            if count > 1 {
-                powerline.add_segment(format!("{}{}", count, symbol), Style::simple(fg, bg));
-            } else if count == 1 {
-                powerline.add_segment(symbol, Style::simple(fg, bg));
-            }
+        let mut add_elem = |count: u32, symbol, fg, bg| match count.cmp(&1) {
+            Ordering::Equal => powerline.add_segment(symbol, Style::simple(fg, bg)),
+            Ordering::Greater => powerline.add_segment(format!("{}{}", count, symbol), Style::simple(fg, bg)),
+            Ordering::Less => (),
         };
 
         add_elem(stats.ahead, '\u{2B06}', S::GIT_AHEAD_FG, S::GIT_AHEAD_BG);

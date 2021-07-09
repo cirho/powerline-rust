@@ -69,5 +69,5 @@ pub fn run_git(path: &Path) -> GitStats {
             }
         });
 
-    GitStats { untracked, staged, non_staged, ahead: ahead as u32, behind: behind as u32, conflicted, branch_name }
+    GitStats { untracked, staged, non_staged, ahead, behind, conflicted, branch_name }
 }
