@@ -49,16 +49,15 @@ impl<S: CwdScheme> Module for Cwd<S> {
             return powerline.add_segment('/', Style::simple(S::PATH_FG, S::PATH_BG));
         }
 
-        if let Some(home_path) = env::home_dir() {
-            let home_str = home_path.to_str().unwrap();
-
-            if cwd.starts_with(home_str) {
+        if let Ok(home_str) = env::var("HOME") {
+            if cwd.starts_with(&home_str) {
                 powerline.add_segment(S::CWD_HOME_SYMBOL, Style::simple(S::HOME_FG, S::HOME_BG));
                 cwd = &cwd[home_str.len()..]
             }
         }
 
         let depth = cwd.matches('/').count();
+
         if (cwd.len() > self.max_length as usize) && (depth > self.wanted_seg_num) {
             let left = self.wanted_seg_num / 2;
             let right = self.wanted_seg_num - left;
