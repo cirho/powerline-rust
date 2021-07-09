@@ -23,6 +23,6 @@ pub use time::{Time, TimeScheme};
 pub use user::{User, UserScheme};
 pub use venv::{VirtualEnv, VirtualEnvScheme};
 
-pub trait Module: Sized {
+pub trait Module {
     fn append_segments(&mut self, powerline: &mut Powerline);
 }
