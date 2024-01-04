@@ -5,7 +5,7 @@ powerline-rust is an alternative to [powerline-shell](https://github.com/b-ryan/
 
 Nobody wants to see latency between pressing enter in favourite shell and seeing prompt. This is main aim of this crate and that's why some features of other alternatives like dynamic segments choosing and theming via **commandline arguments** is **not possible here**.
 
-Although, similar results **can be archived** by **customization**.
+Although, similar results **can be achieved** by **customization**.
 
 There is a demand to recompile every time while customizing, but you change your prompt only once upon a time. I think performance beneficence is worth it.
 
